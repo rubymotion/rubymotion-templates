@@ -1,0 +1,21 @@
+class AppDelegate
+  def application(application, didFinishLaunchingWithOptions:launchOptions)
+
+    # setup scenes
+    @view_controller = ViewController.new
+
+    UIApplication.sharedApplication.setIdleTimerDisabled true
+    @window = UIWindow.alloc.initWithFrame(UIScreen.mainScreen.bounds)
+    @window.rootViewController = @view_controller
+    @window.makeKeyAndVisible
+
+    # To allow videos to be preloaded, we recommend calling loadRequest: as early as possible
+    # (for example, in your app delegate's application:didFinishLaunchingWithOptions: method).
+    # pass your admob account info here, for now we use a test account and have this currently
+    # loading in game_home_scene.
+    #GADRewardBasedVideoAd.sharedInstance().delegate = self
+    #GADRewardBasedVideoAd.sharedInstance().loadRequest(GADRequest.request(), withAdUnitID: 'ca-app-pub-3940256099942544/1712485313')
+
+    true
+  end
+end
