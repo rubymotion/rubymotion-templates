@@ -1,0 +1,21 @@
+
+class ViewController < UIViewController
+  include ScreenSizes
+
+  def viewDidLoad
+    super
+    self.view = sk_view
+    @scene = MainScene.sceneWithSize(sk_view.frame.size)
+    @scene.root = self
+    sk_view.presentScene @scene
+  end
+
+  def sk_view
+    @sk_view ||= SKView.alloc.initWithFrame screen_rect
+  end
+
+  def prefersStatusBarHidden
+    true
+  end
+
+end

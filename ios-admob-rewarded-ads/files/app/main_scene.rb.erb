@@ -1,0 +1,148 @@
+class MainScene < SKScene
+  include ScreenSizes
+  attr_accessor :root
+
+  def didMoveToView view # initializer
+    $self = self
+    self.scaleMode = SKSceneScaleModeAspectFit
+    self.backgroundColor = UIColor.blackColor
+
+    # adds RubyMotion Logo to the home screen
+    @rm_logo = add_sprite(device_screen_width.fdiv(2),
+                          device_screen_height.fdiv(2) + device_screen_height.fdiv(3),
+                          'rubymotion_logo.png',
+                          'rubymotion_logo')
+
+    # add "RUBYMOTION" text to home screen
+    @rm_label = add_label(device_screen_width.fdiv(2),device_screen_height.fdiv(2) + 90)
+    @rm_label.text = 'RUBYMOTION'
+    @rm_label.fontSize = 40
+    @rm_label.fontName = 'Gotham-Bold'
+    @rm_label.fontColor = UIColor.whiteColor
+
+    # add "How-To:Implementing Admob" text to home screen
+    @howto_label = add_label(device_screen_width.fdiv(2),device_screen_height.fdiv(2))
+    @howto_label.text = 'How-To: Implementing Admob'
+
+    # Following example shows a request to load an ad being made to the shared instance
+    # To allow videos to be preloaded, we recommend calling loadRequest: as early as possible
+    # (for example, in your app delegate's application:didFinishLaunchingWithOptions: method).
+    GADRewardBasedVideoAd.sharedInstance().delegate = self
+    GADRewardBasedVideoAd.sharedInstance().loadRequest(GADRequest.request(), withAdUnitID: 'ca-app-pub-3940256099942544/1712485313')
+
+  end
+
+  # creates a label
+  def add_label x, y
+    label = SKLabelNode.labelNodeWithText '0'
+    label.position = CGPointMake(x, y)
+    label.fontColor = UIColor.grayColor
+    label.fontSize = 15
+    label.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeCenter
+    label.verticalAlignmentMode = SKLabelVerticalAlignmentModeCenter
+    label.zPosition = 100
+    label.fontName = 'Optima-ExtraBlack'
+    addChild label
+    label
+  end
+
+  # creates a sprite
+  def add_sprite x, y, path, name
+    texture = SKTexture.textureWithImageNamed path
+    sprite = SKSpriteNode.spriteNodeWithTexture texture
+    sprite.position = CGPointMake x, y
+    sprite.name = name
+    addChild sprite
+    sprite
+  end
+
+  # game ticker is 60 frames per second
+  def update currentTime
+
+  end
+
+  # touch screen event handler
+  def touchesBegan touches, withEvent: _
+
+    # identify what was touched, and create a node
+    node = nodeAtPoint(touches.allObjects.first.locationInNode(self))
+
+    #check if node touched was what you wanted. In this case 'button_ad'
+    if (node.name == 'button_ad')
+      # check if video has loaded and ready to be viewed, if so lets show it
+      if (GADRewardBasedVideoAd.sharedInstance().isReady() == true)
+          GADRewardBasedVideoAd.sharedInstance.presentFromRootViewController(root.self)
+      end
+    end
+
+  end
+
+  # release of screen touch event handler
+  def touchesEnded touches, withEvent: _
+
+  end
+
+  # Reward video ad was watched from start to finish
+  def rewardBasedVideoAd rewardBasedVideoAd, didRewardUserWithReward:reward
+    puts "Reward received, giving user their reward."
+  end
+
+  # Reward video ad received successfully
+  def rewardBasedVideoAdDidReceiveAd rewardBasedVideoAd
+    puts "Reward based video ad is received."
+
+    # create button and make it appear indicating video is ready
+    @ad_button = add_sprite(device_screen_width.fdiv(2),
+                      device_screen_height.fdiv(3) - 30,
+                      'button_ad.png',
+                      'button_ad')
+  end
+
+  # Reward video ad was opened successfully
+  def rewardBasedVideoAdDidOpen rewardBasedVideoAd
+    puts "Opened reward based video ad."
+  end
+
+  # Reward video ad started playing
+  def rewardBasedVideoAdDidStartPlaying rewardBasedVideoAd
+    puts "Reward based video ad started playing."
+  end
+
+  # Reward video was closed during playback
+  def rewardBasedVideoAdDidClose rewardBasedVideoAd
+    puts "Reward based video ad is closed, no reward will be given."
+    # hide button until video ad successfully loads
+    removeChild @ad_button
+
+    # request to load an ad being made to the shared instance
+    GADRewardBasedVideoAd.sharedInstance().delegate = self
+    GADRewardBasedVideoAd.sharedInstance().loadRequest(GADRequest.request(), withAdUnitID: 'ca-app-pub-3940256099942544/1712485313')
+  end
+
+  # Reward video left application
+  def rewardBasedVideoAdWillLeaveApplication rewardBasedVideoAd
+    puts "Reward based video ad will leave application."
+    # hide button until video ad successfully loads
+    removeChild @ad_button
+
+    # request to load an ad being made to the shared instance
+    GADRewardBasedVideoAd.sharedInstance().delegate = self
+    GADRewardBasedVideoAd.sharedInstance().loadRequest(GADRequest.request(), withAdUnitID: 'ca-app-pub-3940256099942544/1712485313')
+  end
+
+  # Reward video failed to load
+  def rewardBasedVideoAd rewardBasedVideoAd, didFailToLoadWithError:error
+    puts "Reward based video ad failed to load."
+    # since the video ad is requested at startup should it fail it will request
+    # to load video ad again until it is successful. this is not pratical but
+    # built this way just for testing purposes.
+
+    # hide button until video ad successfully loads
+    removeChild @ad_button
+
+    # request to load an ad being made to the shared instance
+    GADRewardBasedVideoAd.sharedInstance().delegate = self
+    GADRewardBasedVideoAd.sharedInstance().loadRequest(GADRequest.request(), withAdUnitID: 'ca-app-pub-3940256099942544/1712485313')
+  end
+
+end
