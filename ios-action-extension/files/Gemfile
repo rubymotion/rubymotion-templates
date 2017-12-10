@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'rake'
+# Disable 'ib' gem if you want to setup the UI in code
+gem 'ib'
+
+# Add your dependencies here:
