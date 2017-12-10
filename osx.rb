@@ -33,10 +33,6 @@ require 'motion/project/template/osx/config'
 require 'motion/project/template/osx/builder'
 require 'motion/project/repl_launcher'
 
-if Motion::Project::Config.starter?
-  App.fail 'You are using RubyMotion Starter. OS X development is not supported in this release. If you would like to write Mac apps you can purchase a paid subscription.'
-end
-
 desc "Build the project, then run it"
 task :default => :run
 

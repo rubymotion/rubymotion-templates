@@ -197,12 +197,6 @@ module Motion; module Project
         App.fail "The Android NDK installed on your system does not support API level #{api_version}. Run 'motion android-setup' to install a more recent NDK version."
       end
 
-      if Motion::Project::Config.starter?
-        if self.api_version != '23'
-          App.fail "You are using RubyMotion Starter. Only Android API 23 is supported in this release. If you would like to target older or newer (in beta) versions of Android you can purchase a paid subscription."
-        end
-      end
-
       super
     end
 

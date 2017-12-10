@@ -330,9 +330,6 @@ end
 
 desc "Create a .a static library"
 task :static do
-  if Motion::Project::Config.starter?
-    App.fail "You are using RubyMotion Starter. 'rake static' not supported in this release. If you would like to create static libraries you can purchase a paid subscription."
-  end
   libs = %w(iPhoneSimulator iPhoneOS).map do |platform|
     '"' + App.build(platform, :static => true) + '"'
   end
