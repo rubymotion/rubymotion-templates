@@ -1,4 +1,4 @@
-This are [RubyMotion](http://rubymotion.com) templates. Some are
+These are [RubyMotion](http://rubymotion.com) templates. Some are
 provided by the community. Some are provided by RubyMotion
 proper.
 
