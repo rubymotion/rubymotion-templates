@@ -11,7 +11,8 @@ That being said, RubyMotion does leverage this templates with its
 proprietary LLVM frontend.
 
 For now assume the following copyright until I figure out the best
-license.
+license. And assume BSD-2 as the future license (there will be plenty
+of warning if GPL is adopted).
 
 ```
 Copyright (c) 2012, HipByte SPRL, Scratchwork Development LLC and contributors
