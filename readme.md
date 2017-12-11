@@ -2,8 +2,8 @@ These are [RubyMotion](http://rubymotion.com) templates. Some are
 provided by the community. Some are provided by RubyMotion
 proper.
 
-I'm still trying to determine the best licence for the templates. The
-intent is to make sure that better versions of the template aren't
+I'm still trying to determine the best licence for these templates. The
+intent is to make sure that better versions of these template aren't
 possible (meaning that the best versions of these templates are
 open).
 
