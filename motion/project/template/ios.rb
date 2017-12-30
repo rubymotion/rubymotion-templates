@@ -243,6 +243,14 @@ namespace :archive do
     App.config_without_setup.distribution_mode = true
     Rake::Task["archive"].invoke
   end
+
+  desc "Create an .ipa archive for beta testing via TestFlight (AppStore)"
+  task :beta do
+    App.config_without_setup.build_mode = :release
+    App.config_without_setup.distribution_mode = true
+    App.config.entitlements['beta-reports-active'] = true
+    Rake::Task["archive"].invoke
+  end
 end
 
 desc "Same as 'spec:simulator'"
