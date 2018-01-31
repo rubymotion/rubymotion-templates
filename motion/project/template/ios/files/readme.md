@@ -1,6 +1,10 @@
+# Join the RubyMotion Slack Channel #
+
+[Here is the link.](http://motioneers.herokuapp.com/) Say hello!
+
 # Minimum Requirements #
 
-The minimum requirements to use this template are XCode 9 and
+The minimum requirements to use this template are XCode 9.2 and
 RubyMotion 5.0.
 
 Keep in mind that if you've recently upgraded from a previous versions
@@ -15,13 +19,13 @@ simulator`).
 To run on a specific type of simulator. You can run `rake simulator
 device_name="SIMULATOR"`. Here is a list of simulators available:
 
-- `rake simulator device_name='iPhone 5s'
-- `rake simulator device_name='iPhone 8 Plus'
-- `rake simulator device_name='iPhone 8 Plus'
-- `rake simulator device_name='iPhone X'
-- `rake simulator device_name='iPad Pro (9.7-inch)'
-- `rake simulator device_name='iPad Pro (10.5-inch)'
-- `rake simulator device_name='iPad Pro (12.9-inch)'
+- `rake simulator device_name='iPhone 5s'`
+- `rake simulator device_name='iPhone 8 Plus'`
+- `rake simulator device_name='iPhone 8 Plus'`
+- `rake simulator device_name='iPhone X'`
+- `rake simulator device_name='iPad Pro (9.7-inch)'`
+- `rake simulator device_name='iPad Pro (10.5-inch)'`
+- `rake simulator device_name='iPad Pro (12.9-inch)'`
 
 Consider using https://github.com/KrauseFx/xcode-install (and other
 parts of FastLane) to streamline management of simulators,
