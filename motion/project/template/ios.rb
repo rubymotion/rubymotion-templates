@@ -66,12 +66,14 @@ namespace :build do
   desc "Build the simulator version"
   task :simulator do
     pre_build_actions('iPhoneSimulator')
+    App.config.entitlements['beta-reports-active'] = false
     App.build('iPhoneSimulator')
   end
 
   desc "Build the device version"
   task :device do
     pre_build_actions('iPhoneOS')
+    App.config.entitlements['beta-reports-active'] = false
     App.build('iPhoneOS')
     App.codesign('iPhoneOS')
   end
