@@ -135,7 +135,7 @@ module Motion; module Project
 
       if Motion::Project::Config.starter?
         self.assets_dirs << File.join(File.dirname(__FILE__), 'launch_image')
-        self.api_version = '23'
+        self.api_version = '27'
       end
     end
 
@@ -331,7 +331,7 @@ module Motion; module Project
           '9'
         when '20'
           '19'
-        when '25'
+        when '25', '26', '27'
           '24'
         else
           api_version
@@ -352,7 +352,7 @@ module Motion; module Project
 
     def appt_flags
       aapt_flags = ""
-      aapt_flags << "--no-version-vectors" if build_tools_version >= Motion::Util::Version.new(23)
+      aapt_flags << "--no-version-vectors" if build_tools_version >= Motion::Util::Version.new(27)
       aapt_flags
     end
 
