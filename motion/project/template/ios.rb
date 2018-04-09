@@ -243,6 +243,7 @@ namespace :archive do
   task :distribution do
     App.config_without_setup.build_mode = :release
     App.config_without_setup.distribution_mode = true
+    App.config.entitlements['beta-reports-active'] = true
     Rake::Task["archive"].invoke
   end
 
