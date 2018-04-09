@@ -66,14 +66,12 @@ namespace :build do
   desc "Build the simulator version"
   task :simulator do
     pre_build_actions('iPhoneSimulator')
-    App.config.entitlements.delete('beta-reports-active')
     App.build('iPhoneSimulator')
   end
 
   desc "Build the device version"
   task :device do
     pre_build_actions('iPhoneOS')
-    App.config.entitlements.delete('beta-reports-active')
     App.build('iPhoneOS')
     App.codesign('iPhoneOS')
   end
@@ -243,7 +241,6 @@ namespace :archive do
   task :distribution do
     App.config_without_setup.build_mode = :release
     App.config_without_setup.distribution_mode = true
-    App.config.entitlements['beta-reports-active'] = true
     Rake::Task["archive"].invoke
   end
 
@@ -251,7 +248,6 @@ namespace :archive do
   task :beta do
     App.config_without_setup.build_mode = :release
     App.config_without_setup.distribution_mode = true
-    App.config.entitlements['beta-reports-active'] = true
     Rake::Task["archive"].invoke
   end
 end
