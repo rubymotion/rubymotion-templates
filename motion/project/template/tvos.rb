@@ -237,7 +237,7 @@ namespace :crashlog do
     `#{env} #{deploy} -l #{flags} \"#{device_id}\" \"#{App.config.archive}\"`
 
     # Open the latest generated one.
-    logs = Dir.glob(File.join(crash_reports_dir, "#{App.config.name}{_,-}*"))
+    logs = Dir.glob(File.join(crash_reports_dir, "#{App.config.name}{_,-}*")).sort
     unless logs.empty?
       sh "/usr/bin/open -a Console \"#{logs.last}\""
     end

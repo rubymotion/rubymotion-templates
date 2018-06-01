@@ -39,7 +39,7 @@ module Motion; module Project
         sh "/bin/cp -r \"#{app_bundle}\" #{tmp}/Payload"
         sh "/bin/chmod -R 755 #{tmp}/Payload"
         Dir.chdir(tmp) do
-          dirs = Dir.glob("*").join(' ')
+          dirs = Dir.glob("*").sort.join(' ')
           sh "/usr/bin/zip -q -r archive.zip #{dirs}"
         end
         sh "/bin/cp #{tmp}/archive.zip \"#{archive}\""

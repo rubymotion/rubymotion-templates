@@ -187,15 +187,15 @@ task :build do
   resources_dirs = grab_directories.call(App.config.resources_dirs)
   all_resources = (resources_dirs + App.config.vendored_projects.map { |x| x[:resources] }.compact)
   aapt_resources_flags = all_resources.map { |x| '-S "' + x + '"' }.join(' ')
-  r_java_mtime = Dir.glob(java_dir + '/**/R.java').map { |x| File.mtime(x) }.max
+  r_java_mtime = Dir.glob(java_dir + '/**/R.java').sort.map { |x| File.mtime(x) }.max
   bs_files = []
   classes_changed = false
-  if !r_java_mtime or all_resources.any? { |x| Dir.glob(x + '/**/*').any? { |y| File.mtime(y) > r_java_mtime } }
+  if !r_java_mtime or all_resources.any? { |x| Dir.glob(x + '/**/*').sort.any? { |y| File.mtime(y) > r_java_mtime } }
     packages_list = App.config.vendored_projects.map { |x| x[:package] }.compact.join(':')
     extra_packages = packages_list.empty? ? '' : '--extra-packages ' + packages_list
     sh "\"#{App.config.build_tools_dir}/aapt\" package -f -M \"#{android_manifest}\" #{aapt_assets_flags} #{aapt_resources_flags} -I \"#{android_jar}\" -m -J \"#{java_dir}\" #{extra_packages} --auto-add-overlay --max-res-version #{App.config.target_api_version} #{App.config.appt_flags}"
 
-    r_java = Dir.glob(java_dir + '/**/R.java')
+    r_java = Dir.glob(java_dir + '/**/R.java').sort
     classes_dir = File.join(app_build_dir, 'classes')
     mkdir_p classes_dir
 
@@ -203,7 +203,7 @@ task :build do
       sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{classes_dir} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
     end
 
-    r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').map { |c| "'#{c}'" }
+    r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').sort.map { |c| "'#{c}'" }
     sh "RUBYOPT='' \"#{App.config.bin_exec('android/gen_bridge_metadata')}\" #{r_classes.join(' ')} -o \"#{r_bs}\" "
 
     classes_changed = true
@@ -219,7 +219,7 @@ task :build do
   App.config.archs.uniq.each do |arch|
     # Compile Ruby files.
     ruby = App.config.bin_exec('ruby')
-    bs_files += Dir.glob(File.join(App.config.versioned_datadir, 'BridgeSupport/*.bridgesupport'))
+    bs_files += Dir.glob(File.join(App.config.versioned_datadir, 'BridgeSupport/*.bridgesupport')).sort
     bs_files += App.config.vendored_bs_files
     ruby_bs_flags = bs_files.map { |x| "--uses-bs \"#{x}\"" }.join(' ')
     objs_build_dir = File.join(app_build_dir, 'obj', 'local', App.config.armeabi_directory_name(arch))
@@ -407,7 +407,7 @@ EOS
 
   # Create java files based on the classes map files.
   java_classes = {}
-  Dir.glob(objs_build_dirs[0] + '/**/*.map', File::FNM_DOTMATCH) do |map|
+  Dir.glob(objs_build_dirs[0] + '/**/*.map', File::FNM_DOTMATCH).sort do |map|
     txt = File.read(map)
     current_class = nil
     txt.each_line do |line|
@@ -462,7 +462,7 @@ EOS
   end
   App.config.files.flatten.map { |x| File.dirname(x) }.uniq.each do |path|
     # Load extension files (any .java file inside the same directory of a .rb file).
-    Dir.glob(File.join(path, "*.java")).each do |java_ext|
+    Dir.glob(File.join(path, "*.java")).sort.each do |java_ext|
       class_name = File.basename(java_ext).sub(/\.java$/, '')
       klass = java_classes[class_name]
       unless klass
@@ -528,7 +528,7 @@ EOS
   mkdir_p classes_dir
   class_path = [classes_dir, "#{App.config.sdk_path}/tools/support/annotations.jar", *vendored_jars].map { |x| "\"#{x}\"" }.join(':')
   java_paths = []
-  Dir.glob(File.join(app_build_dir, 'java', '**', '*.java')).each do |java_path|
+  Dir.glob(File.join(app_build_dir, 'java', '**', '*.java')).sort.each do |java_path|
     paths = java_path.split('/')
     paths[paths.index('java')] = 'classes'
     paths[-1].sub!(/\.java$/, '.class')
@@ -603,7 +603,7 @@ EOS
     App.fail "app.release_keystore(path, alias_name) must be called when doing a release build" unless keystore
   end
 
-  dex_files = Dir.glob(File.join(app_build_dir, '*.dex'))
+  dex_files = Dir.glob(File.join(app_build_dir, '*.dex')).sort
 
   # Generate the APK file.
   archive = App.config.apk_path

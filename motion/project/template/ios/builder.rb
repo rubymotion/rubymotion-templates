@@ -43,7 +43,7 @@ module Motion; module Project
           sh "/usr/bin/ditto -rsrc '#{source}' #{tmp}/WatchKitSupport2/WK"
         end
         Dir.chdir(tmp) do
-          dirs = Dir.glob("*").join(' ')
+          dirs = Dir.glob("*").sort.join(' ')
           sh "/usr/bin/zip -q -r archive.zip #{dirs}"
         end
         sh "/bin/cp #{tmp}/archive.zip \"#{archive}\""

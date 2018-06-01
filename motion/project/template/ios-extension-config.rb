@@ -107,7 +107,7 @@ module Motion; module Project
 
     def provisioning_profile(name = /iOS\s?Team Provisioning Profile/)
       @provisioning_profile ||= begin
-        paths = Dir.glob(File.expand_path("~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision")).select do |path|
+        paths = Dir.glob(File.expand_path("~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision")).sort.select do |path|
           text = File.read(path)
           text.force_encoding('binary') if RUBY_VERSION >= '1.9.0'
           text.scan(/<key>\s*Name\s*<\/key>\s*<string>\s*([^<]+)\s*<\/string>/)[0][0].match(name)
@@ -291,7 +291,7 @@ module Motion; module Project
 
     # TODO datadir should not depend on the template name
     def supported_versions
-      @supported_versions ||= Dir.glob(File.join(motiondir, 'data', 'ios', '*')).select{ |path| File.directory?(path) }.map do |path|
+      @supported_versions ||= Dir.glob(File.join(motiondir, 'data', 'ios', '*')).sort.select{ |path| File.directory?(path) }.map do |path|
         File.basename path
       end
     end

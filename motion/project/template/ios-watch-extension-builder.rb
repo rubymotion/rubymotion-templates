@@ -45,7 +45,7 @@ module Motion; module Project
 
       # Compile storyboard
       ibtool = File.join(config.xcode_dir, '/usr/bin/ibtool')
-      Dir.glob("watch_app/**/Interface.storyboard").each do |storyboard|
+      Dir.glob("watch_app/**/Interface.storyboard").sort.each do |storyboard|
         App.info 'Compile', relative_path(storyboard)
         if Util::Version.new(config.xcode_version[0]) >= Util::Version.new('7.0')
           sh "'#{ibtool}' --errors --warnings --notices --target-device watch --module '#{config.escaped_storyboard_module_name}' --minimum-deployment-target #{config.deployment_target} --output-partial-info-plist /tmp/Interface-SBPartialInfo.plist --auto-activate-custom-fonts --output-format human-readable-text --compilation-directory '/tmp' '#{storyboard}'"
@@ -60,7 +60,7 @@ module Motion; module Project
       system "killall ibtoold 2> /dev/null"
 
       # Copy localization files
-      Dir.glob('watch_app/**/*.strings').each do |res_path|
+      Dir.glob('watch_app/**/*.strings').sort.each do |res_path|
         dest_path = File.join(config.app_bundle(platform), sanitize_destination_path(res_path))
         copy_resource(res_path, dest_path)
       end

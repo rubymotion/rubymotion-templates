@@ -112,7 +112,7 @@ module Motion; module Project
       objs_build_dir = File.join(build_dir, 'objs')
       FileUtils.mkdir_p(objs_build_dir)
       any_obj_file_built = false
-      project_files = Dir.glob("**/*.rb").map{ |x| File.expand_path(x) }
+      project_files = Dir.glob("**/*.rb").sort.map{ |x| File.expand_path(x) }
       is_default_archs = (archs == config.default_archs[platform])
       rubyc_bs_flags = bs_files.map { |x| "--uses-bs \"" + x + "\" " }.join(' ')
 
@@ -358,8 +358,8 @@ EOS
       config.resources_dirs.each do |dir|
         if File.exist?(dir)
           ib_resources = []
-          ib_resources.concat((Dir.glob(File.join(dir, '**', '*.xib')) + Dir.glob(File.join(dir, '*.lproj', '*.xib'))).map { |xib| [xib, xib.sub(/\.xib$/, '.nib')] })
-          ib_resources.concat(Dir.glob(File.join(dir, '**', '*.storyboard')).map { |storyboard| [storyboard, storyboard.sub(/\.storyboard$/, '.storyboardc')] })
+          ib_resources.concat((Dir.glob(File.join(dir, '**', '*.xib')).sort + Dir.glob(File.join(dir, '*.lproj', '*.xib')).sort).map { |xib| [xib, xib.sub(/\.xib$/, '.nib')] })
+          ib_resources.concat(Dir.glob(File.join(dir, '**', '*.storyboard')).sort.map { |storyboard| [storyboard, storyboard.sub(/\.storyboard$/, '.storyboardc')] })
           ib_resources.each do |src, dest|
             if !File.exist?(dest) or File.mtime(src) > File.mtime(dest)
               App.info 'Compile', relative_path(src)
@@ -428,7 +428,7 @@ EOS
       # Compile CoreData Model resources and SpriteKit atlas files.
       config.resources_dirs.each do |dir|
         if File.exist?(dir)
-          Dir.glob(File.join(dir, '*.xcdatamodeld')).each do |model|
+          Dir.glob(File.join(dir, '*.xcdatamodeld')).sort.each do |model|
             momd = model.sub(/\.xcdatamodeld$/, '.momd')
             if !File.exist?(momd) or File.mtime(model) > File.mtime(momd)
               App.info 'Compile', relative_path(model)
@@ -438,7 +438,7 @@ EOS
             end
           end
           if cmd = config.spritekit_texture_atlas_compiler
-            Dir.glob(File.join(dir, '*.atlas')).each do |atlas|
+            Dir.glob(File.join(dir, '*.atlas')).sort.each do |atlas|
               if File.directory?(atlas)
                 App.info 'Compile', relative_path(atlas)
                 sh "\"#{cmd}\" \"#{atlas}\" \"#{bundle_path}\""
@@ -470,7 +470,7 @@ EOS
       config.resources_dirs.each do |dir|
         if File.exist?(dir)
           resources_paths << Dir.chdir(dir) do
-            Dir.glob('**{,/*/**}/*').reject do |x|
+            Dir.glob('**{,/*/**}/*').sort.reject do |x|
               # Find files with extnames to exclude or files inside bundles to
               # exclude (e.g. xcassets).
               File.extname(x) == '.lproj' ||
@@ -493,7 +493,7 @@ EOS
       # Compile all .strings files
       config.resources_dirs.each do |dir|
         if File.exist?(dir)
-          Dir.glob(File.join(dir, '{,**/}*.strings')).each do |strings_path|
+          Dir.glob(File.join(dir, '{,**/}*.strings')).sort.each do |strings_path|
             res_path = strings_path
             dest_path = File.join(app_resources_dir, path_on_resources_dirs(config.resources_dirs, res_path))
 
@@ -521,7 +521,7 @@ EOS
       # Delete old resource files.
       resources_files = resources_paths.map { |x| path_on_resources_dirs(config.resources_dirs, x) }
       Dir.chdir(app_resources_dir) do
-        Dir.glob('*').each do |bundle_res|
+        Dir.glob('*').sort.each do |bundle_res|
           next if File.directory?(bundle_res)
           next if reserved_app_bundle_files.include?(bundle_res)
           next if resources_files.include?(bundle_res)

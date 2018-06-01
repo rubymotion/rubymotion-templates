@@ -69,7 +69,7 @@ module Motion; module Project
     #         images, if any.
     #
     def launch_images_asset_bundle
-      launch_images_asset_bundles = assets_bundles.map { |b| Dir.glob(File.join(b, '*.launchimage')) }.flatten
+      launch_images_asset_bundles = assets_bundles.map { |b| Dir.glob(File.join(b, '*.launchimage')).sort }.flatten
       if launch_images_asset_bundles.size > 1
         App.warn "Found #{launch_images_asset_bundles.size} launch image sets across all " \
                  "xcasset bundles. Only the first one (alphabetically) will be used."
@@ -161,7 +161,7 @@ module Motion; module Project
 
     def provisioning_profile(name = /iOS\s?Team Provisioning Profile/)
       @provisioning_profile ||= begin
-        paths = Dir.glob(File.expand_path("~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision")).select do |path|
+        paths = Dir.glob(File.expand_path("~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision")).sort.select do |path|
           text = File.read(path)
           text.force_encoding('binary') if RUBY_VERSION >= '1.9.0'
           text.scan(/<key>\s*Name\s*<\/key>\s*<string>\s*([^<]+)\s*<\/string>/)[0][0].match(name)
@@ -378,7 +378,7 @@ module Motion; module Project
         resources_dirs.flatten.inject([]) do |fonts, dir|
           if File.exist?(dir)
             Dir.chdir(dir) do
-              fonts.concat(Dir.glob('*.{otf,ttf}'))
+              fonts.concat(Dir.glob('*.{otf,ttf}').sort)
             end
           else
             fonts
@@ -432,7 +432,7 @@ module Motion; module Project
     def launch_images
       if Util::Version.new(deployment_target) >= Util::Version.new('7')
         images = resources_dirs.map do |dir|
-          Dir.glob(File.join(dir, '{Default,LaunchImage}*.png')).map do |file|
+          Dir.glob(File.join(dir, '{Default,LaunchImage}*.png')).sort.map do |file|
             launch_image_metadata(file)
           end
         end.flatten.compact

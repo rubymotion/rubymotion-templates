@@ -202,7 +202,7 @@ module Motion; module Project
 
     def zipalign_path
       @zipalign ||= begin
-        ary = Dir.glob(File.join(sdk_path, 'build-tools/*/zipalign'))
+        ary = Dir.glob(File.join(sdk_path, 'build-tools/*/zipalign')).sort
         if ary.empty?
           path = File.join(sdk_path, 'tools/zipalign')
           unless File.exist?(path)
@@ -228,7 +228,7 @@ module Motion; module Project
 
     def latest_api_version
       @latest_api_version ||= begin
-        versions = Dir.glob(sdk_path + '/platforms/android-*').map do |path|
+        versions = Dir.glob(sdk_path + '/platforms/android-*').sort.map do |path|
           md = File.basename(path).match(/\d+$/)
           md ? md[0] : nil
         end.compact
@@ -471,7 +471,7 @@ module Motion; module Project
 
     def ctags_files
       ctags_files = vendored_bs_files + files.flatten
-      ctags_files + Dir.glob(File.join(versioned_datadir, 'BridgeSupport/*.bridgesupport'))
+      ctags_files + Dir.glob(File.join(versioned_datadir, 'BridgeSupport/*.bridgesupport')).sort
     end
 
     def ctags_config_file
