@@ -407,7 +407,7 @@ EOS
 
   # Create java files based on the classes map files.
   java_classes = {}
-  Dir.glob(objs_build_dirs[0] + '/**/*.map', File::FNM_DOTMATCH).sort do |map|
+  Dir.glob(objs_build_dirs[0] + '/**/*.map', File::FNM_DOTMATCH).sort.each do |map|
     txt = File.read(map)
     current_class = nil
     txt.each_line do |line|
