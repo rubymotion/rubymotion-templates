@@ -60,7 +60,7 @@ module Motion; module Project
     def codesign(config, platform)
       app_bundle = config.app_bundle(platform)
       framework_versions = 'Frameworks/*.framework/Versions/*'
-      Dir.glob(File.join(app_bundle, framework_versions)).sort do |version|
+      Dir.glob(File.join(app_bundle, framework_versions)).sort.each do |version|
         unless version == File.basename('Current')
           codesign_bundle(config, version, true)
         end
