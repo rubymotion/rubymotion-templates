@@ -14,6 +14,9 @@ begin
 rescue LoadError
 end
 
+# Uncomment the following line to add an icon generate capacity to your build
+#task 'build:icons' => 'resources/app-icon.icon_asset'
+
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   define_icon_defaults!(app)
