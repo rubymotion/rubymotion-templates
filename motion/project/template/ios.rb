@@ -32,10 +32,11 @@ App.template = :ios
 require 'motion/project'
 require 'motion/project/template/ios/config'
 require 'motion/project/template/ios/builder'
+require 'motion/project/template/tasks/ios-icon-rule'
 require 'motion/project/repl_launcher'
 
 desc "Build the project, then run the simulator"
-task :default => :simulator
+task :default => ['build:icons', :simulator]
 
 desc "Build everything"
 task :build => ['build:simulator', 'build:device']
@@ -64,17 +65,20 @@ namespace :build do
   end
 
   desc "Build the simulator version"
-  task :simulator do
+  task :simulator => 'build:icons' do
     pre_build_actions('iPhoneSimulator')
     App.build('iPhoneSimulator')
   end
 
   desc "Build the device version"
-  task :device do
+  task :device => 'build:icons' do
     pre_build_actions('iPhoneOS')
     App.build('iPhoneOS')
     App.codesign('iPhoneOS')
   end
+
+  desc "Placeholder task for building the xcassets for the application icon"
+  task :icons
 end
 
 namespace :watch do
