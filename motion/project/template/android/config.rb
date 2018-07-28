@@ -92,6 +92,8 @@ module Motion; module Project
   end
 
   class AndroidConfig < Config
+    ANDROID_STARTER_API_VERSION = '27'
+
     register :android
 
     variable :sdk_path, :ndk_path, :package, :main_activity, :sub_activities,
@@ -135,7 +137,7 @@ module Motion; module Project
 
       if Motion::Project::Config.starter?
         self.assets_dirs << File.join(File.dirname(__FILE__), 'launch_image')
-        self.api_version = '27'
+        self.api_version = ANDROID_STARTER_API_VERSION
       end
     end
 
@@ -181,15 +183,19 @@ module Motion; module Project
     end
 
     def validate
-      if !sdk_path or !File.exist?("#{sdk_path}/platforms")
+      if !sdk_path || !File.exist?("#{sdk_path}/platforms")
         App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup' to install the latest SDK version."
       end
 
-      if !ndk_path or !File.exist?("#{ndk_path}/platforms")
+      if !ndk_path || !File.exist?("#{ndk_path}/platforms")
         App.fail "app.ndk_path should point to a valid Android NDK directory. Run 'motion android-setup' to install the latest NDK version."
       end
 
-      if api_version == nil or !File.exist?("#{sdk_path}//platforms/android-#{api_version}")
+      if Motion::Project::Config.starter? && api_version != ANDROID_STARTER_API_VERSION
+        App.fail "The Android SDK for Starter Edition has to be API level #{ANDROID_STARTER_API_VERSION}."
+      end
+
+      if api_version == nil || !File.exist?("#{sdk_path}//platforms/android-#{api_version}")
         App.fail "The Android SDK installed on your system does not support " + (api_version == nil ? "any API level. Run 'motion android-setup' to install the latest API level." : "API level #{api_version}") + ". Run 'motion android-setup --api_version=#{api_version}' to install it."
       end
 
