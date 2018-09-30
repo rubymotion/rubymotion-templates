@@ -108,7 +108,7 @@ END
   end
 
   # TODO: Do not hardcode
-  device_name = "Apple TV 1080p"
+  device_name = "Apple TV"
 
   app_bundle = App.config.app_bundle('AppleTVSimulator')
   kernel_path = File.join(App.config.datadir, "AppleTVSimulator", "kernel-x86_64.bc")
