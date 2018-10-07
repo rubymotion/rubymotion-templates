@@ -83,7 +83,6 @@ def ios_icon_list
       IosIconDefinition.new(:ipad, 29, 2),
       IosIconDefinition.new(:ipad, 40, 1),
       IosIconDefinition.new(:ipad, 40, 2),
-      IosIconDefinition.new(:ipad, 76, 1),
       IosIconDefinition.new(:ipad, 76, 2),
       IosIconDefinition.new(:ipad, 83.5, 2),
       IosIconDefinition.new('ios-marketing', 1024, 1)
