@@ -92,8 +92,6 @@ module Motion; module Project
   end
 
   class AndroidConfig < Config
-    ANDROID_STARTER_API_VERSION = '27'
-
     register :android
 
     variable :sdk_path, :ndk_path, :package, :main_activity, :sub_activities,
@@ -137,7 +135,7 @@ module Motion; module Project
 
       if Motion::Project::Config.starter?
         self.assets_dirs << File.join(File.dirname(__FILE__), 'launch_image')
-        self.api_version = ANDROID_STARTER_API_VERSION
+        self.api_version = '27'
       end
     end
 
@@ -183,19 +181,15 @@ module Motion; module Project
     end
 
     def validate
-      if !sdk_path || !File.exist?("#{sdk_path}/platforms")
+      if !sdk_path or !File.exist?("#{sdk_path}/platforms")
         App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup' to install the latest SDK version."
       end
 
-      if !ndk_path || !File.exist?("#{ndk_path}/platforms")
+      if !ndk_path or !File.exist?("#{ndk_path}/platforms")
         App.fail "app.ndk_path should point to a valid Android NDK directory. Run 'motion android-setup' to install the latest NDK version."
       end
 
-      if Motion::Project::Config.starter? && api_version != ANDROID_STARTER_API_VERSION
-        App.fail "The Android SDK for Starter Edition has to be API level #{ANDROID_STARTER_API_VERSION}."
-      end
-
-      if api_version == nil || !File.exist?("#{sdk_path}//platforms/android-#{api_version}")
+      if api_version == nil or !File.exist?("#{sdk_path}//platforms/android-#{api_version}")
         App.fail "The Android SDK installed on your system does not support " + (api_version == nil ? "any API level. Run 'motion android-setup' to install the latest API level." : "API level #{api_version}") + ". Run 'motion android-setup --api_version=#{api_version}' to install it."
       end
 
@@ -337,7 +331,7 @@ module Motion; module Project
           '9'
         when '20'
           '19'
-        when '25', '26', '27', '28'
+        when '25', '26', '27'
           '24'
         else
           api_version
@@ -405,7 +399,16 @@ module Motion; module Project
     end
 
     def bin_exec(name)
-      File.join(motiondir, 'bin', name)
+      result = File.join(motiondir, 'bin', name)
+
+      if (name == 'ruby')
+        ruby_android = File.join(motiondir, 'bin', 'ruby-android')
+        if File.exist? ruby_android
+          result = ruby_android
+        end
+      end
+
+      result
     end
 
     def kernel_path(arch)
