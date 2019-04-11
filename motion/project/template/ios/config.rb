@@ -34,6 +34,22 @@ module Motion; module Project
              :status_bar_style, :icons, :prerendered_icon, :fonts, :seed_id,
              :provisioning_profile, :manifest_assets
 
+    def macos_version
+      `sw_vers`.each_line.to_a[1].split(':').last.strip
+    rescue
+      App.warn "Unable to determine the version of Mac OS X."
+    end
+
+    def check_mojave_swift_dylibs
+      if (Motion::Version == '6.0' || Motion::Version == '6.1') && macos_version == '10.14.4' && !File.exist?(File.expand_path("/Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"))
+        App.warn "Mojave 10.14.4's Swift 5 runtime was not found in Xcode (or has not been marked as completed)."
+        App.warn "You must run the following commands to fix Xcode 10.2 (commands may require sudo):"
+        App.warn "    cp -r /usr/lib/swift/*.dylib /Applications/Xcode.app/Contents/Frameworks/"
+        App.warn "    touch /Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"
+        App.fail "Rerun build after you have ran the commands above."
+      end
+    end
+
     def initialize(project_dir, build_mode)
       super
       @frameworks = ['UIKit', 'Foundation', 'CoreGraphics', 'CoreFoundation',
@@ -50,6 +66,8 @@ module Motion; module Project
         self.resources_dirs << File.join(File.dirname(__FILE__), 'launch_image')
         self.info_plist['UILaunchStoryboardName'] = 'launch_screen'
       end
+
+      check_mojave_swift_dylibs
     end
 
     def platforms; ['iPhoneSimulator', 'iPhoneOS']; end
