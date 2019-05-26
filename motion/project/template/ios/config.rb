@@ -41,9 +41,12 @@ module Motion; module Project
     end
 
     def check_mojave_swift_dylibs
-      if (Motion::Version == '6.0' || Motion::Version == '6.1') && macos_version == '10.14.4' && !File.exist?(File.expand_path("/Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"))
-        App.warn "Mojave 10.14.4's Swift 5 runtime was not found in Xcode (or has not been marked as completed)."
-        App.warn "You must run the following commands to fix Xcode 10.2 (commands may require sudo):"
+      return if File.exist?(File.expand_path("/Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"))
+      ruby_motion_versions = ['6.0', '6.1', '6.2']
+      macos_versions = ['10.14.4', '10.14.5']
+      if ruby_motion_versions.include?(Motion::Version) && macos_versions.include?(macos_version)
+        App.warn "Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode (or has not been marked as staged)."
+        App.warn "You must run the following commands to fix Xcode (commands may require sudo):"
         App.warn "    cp -r /usr/lib/swift/*.dylib /Applications/Xcode.app/Contents/Frameworks/"
         App.warn "    touch /Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"
         App.fail "Rerun build after you have ran the commands above."
