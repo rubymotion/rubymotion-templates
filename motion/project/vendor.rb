@@ -187,7 +187,7 @@ EOS
       end
 
       build_dir = build_dir(platform)
-      if !File.exist?(build_dir) or Dir.glob('**/*').sort.any? { |x| File.exists?(x) && File.mtime(x) > File.mtime(build_dir) }
+      if !File.exist?(build_dir) or Dir.glob('**/*').sort.any? { |x| File.exist?(x) && File.mtime(x) > File.mtime(build_dir) }
         FileUtils.mkdir_p build_dir
 
         xcodebuild(platform, 'build')
