@@ -90,9 +90,11 @@ module Motion; module Project
           end
         end
       end
-      Dir.chdir(@path) do
-        if File.exist?(bridgesupport_build_path)
-          FileUtils.rm bridgesupport_build_path
+      if File.exist?(@path)
+        Dir.chdir(@path) do
+          if File.exist?(bridgesupport_build_path)
+            FileUtils.rm bridgesupport_build_path
+          end
         end
       end
     end
