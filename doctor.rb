@@ -2,7 +2,7 @@
 #       try not to take on external dependencies even if it means that code will be duplicated.
 module Motion; module Project
   class Doctor
-    def execute
+    def execute silent = true
       if ENV['RM_BYPASS_DOCTOR'] == '1'
         puts "* WARNING: Bypassing `motion doctor`, I hope you know what you're doing!"
         return
@@ -10,7 +10,9 @@ module Motion; module Project
         verify_swift
         verify_community_templates
         verify_community_commands
-        puts "* INFO: `motion doctor` ran successfully and found no issues. If you are still unable to build your applications, come to the Slack Channel and ask for help there: http://slack.rubymotion.com."
+        unless silent
+          puts "* INFO: `motion doctor` ran successfully and found no issues. If you are still unable to build your applications, come to the Slack Channel and ask for help there: http://slack.rubymotion.com."
+        end
       end
     end
 
