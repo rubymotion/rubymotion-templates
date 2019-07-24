@@ -10,6 +10,7 @@ module Motion; module Project
         verify_swift
         verify_community_templates
         verify_community_commands
+        puts "* INFO: `motion doctor` ran successfully and found no issues. If you are still unable to build your applications, come to the Slack Channel and ask for help there: http://slack.rubymotion.com."
       end
     end
 
