@@ -31,6 +31,7 @@ App.template = :osx
 require 'motion/project'
 require 'motion/project/template/osx/config'
 require 'motion/project/template/osx/builder'
+require 'motion/project/template/osx/notarizer'
 require 'motion/project/repl_launcher'
 
 desc "Build the project, then run it"
@@ -49,10 +50,18 @@ namespace :build do
     App.build('MacOSX')
     App.codesign('MacOSX') if App.config_without_setup.codesign_for_release
   end
+
+  desc "Build and notarize the project for release"
+  task :notarize do
+    App.config_without_setup.build_mode = :release
+    App.build('MacOSX')
+    notarizer = Motion::Project::Notarizer.new
+    notarizer.run(App.config, 'MacOSX')
+  end
 end
 
 desc "Build everything"
-task :build => ['build:development', 'build:release']
+task :build => ['build:development', 'build:release', 'build:notarize']
 
 desc "Run the project"
 task :run do
