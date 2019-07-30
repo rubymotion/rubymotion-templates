@@ -53,23 +53,31 @@ module Motion; module Project
 
     def bundle_id
       @bundle_id ||= proc do
-        rv = config.info_plist['CFBundleIdentifier']
+        rv = config.identifier
         raise 'Please set app.info_plist[\'CFBundleIdentifier\'] in your Rakefile' if rv.nil?
         rv
       end.call
     end
 
-    def developer_id
-      @developer_id ||= proc do
-        rv = config.developer_id
-        raise 'Please set app.developer_id in your Rakefile' if rv.nil?
+    def developer_userid
+      @developer_userid ||= proc do
+        rv = config.developer_userid
+        raise 'Please set app.developer_userid in your Rakefile' if rv.nil?
+        rv
+      end.call
+    end
+
+    def altool_keychain_item
+      @altool_keychain_item ||= proc do
+        rv = config.altool_keychain_item
+        raise 'Please set app.altool_keychain_item in your Rakefile!' if rv.nil?
         rv
       end.call
     end
 
     def create_entitlements_file
       App.info "Creating entitlements.xml file for", app_bundle
-      cmd = "codesign -d --entitlements - #{app_bundle} > entitlements.xml"
+      cmd = "codesign -d --entitlements - '#{app_bundle}' > entitlements.xml"
       system cmd
     end
 
@@ -81,8 +89,8 @@ module Motion; module Project
       opts += "--deep  --options runtime "
       opts += "--entitlements entitlements.xml"
 
-      cmd << "find #{app_bundle} -type f -exec codesign #{opts} {} +"
-      cmd << "codesign #{opts} #{app_bundle}"
+      cmd << "find '#{app_bundle}' -type f -exec codesign #{opts} {} +"
+      cmd << "codesign #{opts} '#{app_bundle}'"
 
       sh(cmd)
     end
@@ -90,16 +98,16 @@ module Motion; module Project
     def check_code_signature
       App.info "Checking code signature… ", app_bundle
 
-      cmd = ["codesign -v --strict --deep --verbose=2 #{app_bundle}"]
-      cmd << "codesign -d --deep --verbose=2 -r- #{app_bundle}"
-      cmd << "spctl --assess -vv #{app_bundle}"
+      cmd = ["codesign -v --strict --deep --verbose=2 '#{app_bundle}'"]
+      cmd << "codesign -d --deep --verbose=2 -r- '#{app_bundle}'"
+      cmd << "spctl --assess -vv '#{app_bundle}'"
 
       sh cmd
     end
 
     def zip_app_file
       App.info "Zipping .app file to…", release_zip
-      cmd = "ditto -c -k --keepParent #{app_bundle} #{release_zip}"
+      cmd = "ditto -c -k --keepParent '#{app_bundle}' #{release_zip}"
       sh cmd
     end
 
@@ -107,8 +115,8 @@ module Motion; module Project
       App.info "Submitting for notarization… ", release_zip
       cmd  = 'xcrun altool --notarize-app '
       cmd += "--primary-bundle-id \"#{bundle_id}\" "
-      cmd += "--username \"#{developer_id}\" "
-      cmd += "--password \"@keychain:alttool\" --file #{release_zip}"
+      cmd += "--username \"#{developer_userid}\" "
+      cmd += "--password \"@keychain:#{altool_keychain_item}\" --file #{release_zip}"
       sh cmd
     end
 
