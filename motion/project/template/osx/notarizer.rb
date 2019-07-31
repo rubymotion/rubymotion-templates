@@ -107,7 +107,7 @@ module Motion; module Project
 
     def zip_app_file
       App.info "Zipping .app file to…", release_zip
-      cmd = "ditto -c -k --keepParent '#{app_bundle}' #{release_zip}"
+      cmd = "ditto -c -k --keepParent '#{app_bundle}' '#{release_zip}'"
       sh cmd
     end
 
@@ -116,7 +116,7 @@ module Motion; module Project
       cmd  = 'xcrun altool --notarize-app '
       cmd += "--primary-bundle-id \"#{bundle_id}\" "
       cmd += "--username \"#{developer_userid}\" "
-      cmd += "--password \"@keychain:#{altool_keychain_item}\" --file #{release_zip}"
+      cmd += "--password \"@keychain:#{altool_keychain_item}\" --file '#{release_zip}'"
       sh cmd
     end
 
