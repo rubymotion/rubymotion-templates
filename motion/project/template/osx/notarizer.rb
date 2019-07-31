@@ -31,18 +31,55 @@ module Motion
     class Notarizer
       attr_accessor :config, :platform, :debug
 
-      def run(config, platform)
+      def initialize(config, platform)
         self.debug = false
         self.config = config
         self.platform = platform
+      end
 
+      # Submit the app bundle for notarization
+      def notarize
         # Use of additional entitlements file is currently disabled
         # create_entitlements_file
 
         codesign
         check_code_signature
         zip_app_file
-        notarize
+        submit_for_notarization
+      end
+
+      # Staple the app bundle and re-zip it
+      # to make it acceptable for Gatekeeper
+      def staple
+        staple_bundle
+        zip_app_file
+        puts "Your app is now ready for distribution at '#{release_zip}'"
+      end
+
+      # Show the notarization history and details on individual
+      # notarization items
+      def show_history
+        clearscreen
+
+        # number and print the history lines
+        history.lines.each_with_index do |l, i|
+          if i>4 && i < (history.lines.count - 3)
+            l = "(#{sprintf("%02d", i-4)}) #{l}"
+          else
+            l = "     #{l}"
+          end
+          puts l
+        end
+
+        # Let user select a line from the history
+        puts "Enter line to see details (x to exit)"
+        lno = STDIN.gets
+        lno.chomp!
+        exit if lno.downcase=='x'
+
+        # Grep the uid of the item and show its details
+        uid = history.lines[lno.to_i + 4].match(/[a-zA-Z0-9]{8}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z,0-9]{12}/)
+        show_notarization_status uid[0]
       end
 
       private
@@ -62,7 +99,6 @@ module Motion
         @bundle_id ||= proc do
           rv = config.identifier
           raise 'Please set app.info_plist[\'CFBundleIdentifier\'] in your Rakefile' if rv.nil?
-
           rv
         end.call
       end
@@ -72,7 +108,6 @@ module Motion
         @developer_userid ||= proc do
           rv = config.developer_userid
           raise 'Please set app.developer_userid in your Rakefile' if rv.nil?
-
           rv
         end.call
       end
@@ -84,7 +119,6 @@ module Motion
         @developer_app_password ||= proc do
           rv = config.developer_app_password
           raise 'Please set app.developer_app_password in your Rakefile! Use @keychain:<name> for keychain items or @env:<variable> for environment variables. See xcrun altool for more help.' if rv.nil?
-
           rv
         end.call
       end
@@ -141,12 +175,43 @@ module Motion
       end
 
       # Submit the zip file for notarization
-      def notarize
+      def submit_for_notarization
         App.info 'Submitting for notarization… ', release_zip
         cmd  = 'xcrun altool --notarize-app '
         cmd += "--primary-bundle-id \"#{bundle_id}\" "
-        cmd += "--username \"#{developer_userid}\" "
+        cmd += "--username '#{developer_userid}' "
         cmd += "--password \"#{developer_app_password}\" --file '#{release_zip}'"
+        sh cmd
+        puts <<-S
+Remember to run
+
+    rake notarize:staple
+
+after notarization was succesful! To check notarization status run
+
+    rake notarize:history
+
+S
+      end
+
+      # Show the status of a notarization item
+      # with the given uid
+      def show_notarization_status(uid=nil)
+        cmd  = 'xcrun altool --notarization-info '
+        cmd += "#{uid} "
+        cmd += "--username '#{developer_userid}' "
+        cmd += "--password '#{developer_app_password}' "
+
+        clearscreen
+        puts `#{cmd}`
+        STDIN.gets
+        show_history
+      end
+
+      # Staple the app bundle after successful notarization
+      def staple_bundle
+        App.info 'Stapling app bundle…', app_bundle
+        cmd  = "xcrun stapler staple '#{app_bundle}'"
         sh cmd
       end
 
@@ -157,6 +222,21 @@ module Motion
           puts "\t'#{c}'" if debug
           system c
         end
+      end
+
+      def clearscreen
+        puts "\033[2J"
+      end
+
+      def history
+        @history ||= `#{cmd_history}`
+      end
+
+      def cmd_history
+        cmd  = 'xcrun altool --notarization-history 0 '
+        cmd += "--username '#{developer_userid}' "
+        cmd += "--password '#{developer_app_password}' "
+        cmd
       end
     end
   end
