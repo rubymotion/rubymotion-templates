@@ -51,17 +51,10 @@ namespace :build do
     App.codesign('MacOSX') if App.config_without_setup.codesign_for_release
   end
 
-  desc "Build and notarize the project for release"
-  task :notarize do
-    App.config_without_setup.build_mode = :release
-    App.build('MacOSX')
-    notarizer = Motion::Project::Notarizer.new
-    notarizer.run(App.config, 'MacOSX')
-  end
 end
 
 desc "Build everything"
-task :build => ['build:development', 'build:release', 'build:notarize']
+task :build => ['build:development', 'build:release']
 
 desc "Run the project"
 task :run do
@@ -120,6 +113,30 @@ namespace :archive do
   task :distribution do
     App.config_without_setup.distribution_mode = true
     Rake::Task['archive'].invoke
+  end
+end
+
+desc "Build and notarize the project for release"
+task :notarize do
+  App.config_without_setup.build_mode = :release
+  App.build('MacOSX')
+  notarizer = Motion::Project::Notarizer.new(App.config, 'MacOSX')
+  notarizer.notarize
+end
+
+namespace :notarize do
+  desc "Staple the notarization ticket to your app"
+  task :staple do
+    App.config_without_setup.build_mode = :release
+    notarizer = Motion::Project::Notarizer.new(App.config, 'MacOSX')
+    notarizer.staple
+  end
+
+  desc "List the latest notarization attempts"
+  task :history do
+    App.config_without_setup.build_mode = :release
+    notarizer = Motion::Project::Notarizer.new(App.config, 'MacOSX')
+    notarizer.show_history
   end
 end
 
