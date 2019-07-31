@@ -55,7 +55,6 @@ namespace :build do
   task :notarize do
     App.config_without_setup.build_mode = :release
     App.build('MacOSX')
-    App.codesign('MacOSX') if App.config_without_setup.codesign_for_release
     notarizer = Motion::Project::Notarizer.new
     notarizer.run(App.config, 'MacOSX')
   end
