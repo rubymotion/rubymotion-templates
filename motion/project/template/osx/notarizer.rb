@@ -67,10 +67,10 @@ module Motion; module Project
       end.call
     end
 
-    def altool_keychain_item
-      @altool_keychain_item ||= proc do
-        rv = config.altool_keychain_item
-        raise 'Please set app.altool_keychain_item in your Rakefile!' if rv.nil?
+    def developer_app_password
+      @developer_app_password ||= proc do
+        rv = config.developer_app_password
+        raise 'Please set app.developer_app_password in your Rakefile!' if rv.nil?
         rv
       end.call
     end
@@ -116,7 +116,7 @@ module Motion; module Project
       cmd  = 'xcrun altool --notarize-app '
       cmd += "--primary-bundle-id \"#{bundle_id}\" "
       cmd += "--username \"#{developer_userid}\" "
-      cmd += "--password \"@keychain:#{altool_keychain_item}\" --file '#{release_zip}'"
+      cmd += "--password \"#{developer_app_password}\" --file '#{release_zip}'"
       sh cmd
     end
 

@@ -33,7 +33,7 @@ module Motion; module Project
     variable :icon, :copyright, :category,
              :embedded_frameworks, :external_frameworks,
              :codesign_for_development, :codesign_for_release,
-             :eval_support, :developer_userid, :altool_keychain_item
+             :eval_support, :developer_userid, :developer_app_password
 
     def initialize(project_dir, build_mode)
       super
