@@ -146,8 +146,9 @@ module Motion
         # especially 3rd party frameworks
         # When not doing this notarization may fail e.g. when using
         # the Sparkle updater CocoaPod (tested with Sparkle pod v1.21)
-        # We could turn this into a optional step (e.g. config.force_deep_sign)
-        cmd << "find '#{app_bundle}' -type f -exec codesign #{opts} {} +"
+        if config.force_deep_sign
+          cmd << "find '#{app_bundle}' -type f -exec codesign #{opts} {} +"
+        end
 
         # Sign the full app bundle
         cmd << "codesign #{opts} '#{app_bundle}'"
@@ -187,10 +188,18 @@ Remember to run
 
     rake notarize:staple
 
-after notarization was succesful! To check notarization status run
+after notarization was succesful! 
+To check notarization status run
 
     rake notarize:history
 
+If notarization fails you might want add the following line to your Rakefile:
+
+    Motion::Project::App.setup do |app|
+      ...
+      app.force_deep_sign = true
+      ...
+    end
 S
       end
 
