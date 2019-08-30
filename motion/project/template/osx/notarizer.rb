@@ -39,8 +39,7 @@ module Motion
 
       # Submit the app bundle for notarization
       def notarize
-        # Use of additional entitlements file is currently disabled
-        # create_entitlements_file
+        create_entitlements_file
 
         codesign
         check_code_signature
@@ -89,6 +88,11 @@ module Motion
         @app_bundle ||= File.dirname(config.app_bundle(platform))
       end
 
+      # The path to the entitlements file used for signing
+      def entitlements_file
+        @entitlements_file ||= File.join(config.versionized_build_dir(platform), 'entitlements.xml')
+      end
+
       # The target .zip file which will contain the notarized application bundle
       def release_zip
         @release_zip ||= app_bundle.gsub(/\.app$/, '.zip')
@@ -127,7 +131,7 @@ module Motion
       # Currently not in use
       def create_entitlements_file
         App.info 'Creating entitlements.xml file for', app_bundle
-        cmd = "codesign -d --entitlements - '#{app_bundle}' > entitlements.xml"
+        cmd = "codesign -d --entitlements - '#{app_bundle}' > '#{entitlements_file}'"
         system cmd
       end
 
@@ -140,7 +144,7 @@ module Motion
         opts += '--deep  --options runtime '
 
         # Use of additional entitlements file is currently disabled
-        # opts += "--entitlements entitlements.xml"
+        opts += "--entitlements '#{entitlements_file}'"
 
         # Make sure that everything in the bundle is correctly signed
         # especially 3rd party frameworks
@@ -160,12 +164,41 @@ module Motion
       # about errors regarding the signature
       def check_code_signature
         App.info 'Checking code signature… ', app_bundle
+        check_valid_on_disk
+        puts
 
-        cmd = ["codesign -v --strict --deep --verbose=2 '#{app_bundle}'"]
-        cmd << "codesign -d --deep --verbose=2 -r- '#{app_bundle}'"
-        cmd << "spctl --assess -vv '#{app_bundle}'"
+        check_hardened_runtime
+        puts
 
-        sh cmd
+        check_spctl
+        puts
+      end
+
+      def check_valid_on_disk
+        result = sh_capture("codesign -v --strict --deep --verbose=2 '#{app_bundle}'")
+
+        text   = 'valid on disk'
+        result =~ /#{text}/ ? show_as_success(text) : show_as_failed(text)
+
+        text   = 'satisfies its Designated Requirement'
+        result =~ /#{text}/ ? show_as_success(text) : show_as_failed(text)
+      end
+
+      def check_hardened_runtime
+        result = sh_capture("codesign -d --deep --verbose=2 -r- '#{app_bundle}'")
+
+        text   = 'Timestamp='
+        result =~ /#{text}/ ? show_as_success('secure timestamp') : show_as_failed('secure timestamp')
+
+        text   = 'Runtime Version='
+        result =~ /#{text}/ ? show_as_success('hardened runtime') : show_as_failed('hardened runtime')
+      end
+
+      def check_spctl
+        result = sh_capture("spctl --assess -vv '#{app_bundle}'")
+
+        text   = 'accepted'
+        result =~ /#{text}/ ? show_as_success(text) : show_as_failed(text)
       end
 
       # Zip the app into the target zip file
@@ -188,7 +221,7 @@ Remember to run
 
     rake notarize:staple
 
-after notarization was succesful! 
+after notarization was succesful!
 To check notarization status run
 
     rake notarize:history
@@ -233,6 +266,14 @@ S
         end
       end
 
+      # Helper method for running a shell command and capturing results
+      def sh_capture(cmd)
+        result = `#{cmd} 2>&1`
+        puts result
+
+        result
+      end
+
       def clearscreen
         puts "\033[2J"
       end
@@ -246,6 +287,16 @@ S
         cmd += "--username '#{developer_userid}' "
         cmd += "--password '#{developer_app_password}' "
         cmd
+      end
+
+      # show a green checkmark and text
+      def show_as_success(text)
+        puts "\e[32m\xE2\x9C\x94\e[0m #{text}"
+      end
+
+      # show a red X and text
+      def show_as_failed(text)
+        puts "\e[31m\xE2\x9D\x8C\e[0m #{text}"
       end
     end
   end
