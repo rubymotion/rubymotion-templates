@@ -119,7 +119,6 @@ end
 desc "Build and notarize the project for release"
 task :notarize do
   App.config_without_setup.build_mode = :release
-  App.build('MacOSX')
   notarizer = Motion::Project::Notarizer.new(App.config, 'MacOSX')
   notarizer.notarize
 end
