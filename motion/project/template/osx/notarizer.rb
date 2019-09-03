@@ -39,6 +39,7 @@ module Motion
 
       # Submit the app bundle for notarization
       def notarize
+        check_app_bundle_exist!
         create_entitlements_file
 
         codesign
@@ -172,6 +173,17 @@ module Motion
 
         check_spctl
         puts
+      end
+
+      # Check if the app bundle file exists, otherwise remind the
+      # user to run rake build:release
+      def check_app_bundle_exist!
+        return true if File.exist?(app_bundle)
+
+        show_as_failed("No app bundle found at '#{app_bundle}'! ")
+        puts "Please run \n\n\trake build:release \n\nbefore notarizing!"
+
+        exit(1)
       end
 
       def check_valid_on_disk
