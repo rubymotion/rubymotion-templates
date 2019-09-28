@@ -42,7 +42,7 @@ module Motion; module Project
 
     def check_mojave_swift_dylibs
       return if File.exist?(File.expand_path("/Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"))
-      ruby_motion_versions = ['6.0', '6.1', '6.2']
+      ruby_motion_versions = ['6.0', '6.1', '6.2', '6.3']
       macos_versions = ['10.14.4', '10.14.5']
       if ruby_motion_versions.include?(Motion::Version) && macos_versions.include?(macos_version)
         App.warn "Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode (or has not been marked as staged)."
@@ -311,10 +311,10 @@ module Motion; module Project
         ' 5s'
       else
         return ' Air 2' unless family == 1
-        if Util::Version.new(xcode_version[0]) < Util::Version.new('7.0')
+        if Util::Version.new(xcode_version[0]) < Util::Version.new('10.0')
           ' 6'
         else
-          ' 6s'
+          ' 8'
         end
       end
     end
