@@ -207,7 +207,9 @@ module Motion; module Project
         unless supported_version && !supported_version.empty?
           App.fail("The requested deployment target SDK " \
                    "is not available or supported by " \
-                   "RubyMotion at this time.")
+                   "RubyMotion at this time.\n" \
+                   "           Available SDKs: #{versions.join(', ')}\n" \
+                   "           Supported SDKs: #{supported_versions.join(', ')}")
         end
         supported_version
       end
