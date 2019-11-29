@@ -239,7 +239,7 @@ task :build do
         asm = ruby_obj + '.s'
         FileUtils.mkdir_p(File.dirname(asm))
         @compiler[job] ||= {}
-        ruby_arch = arch.start_with?('arm64') ? 'x86_64' : 'i386'
+        ruby_arch = 'x86_64'
         @compiler[job][arch] ||= IO.popen("/usr/bin/env VM_PLATFORM=android VM_KERNEL_PATH=\"#{kernel_bc}\" VM_OPT_LEVEL=\"#{App.config.opt_level}\" arch -#{ruby_arch} \"#{ruby}\" #{ruby_bs_flags} --project_dir \"#{Dir.pwd}\" --emit-llvm-fast \"\"", "r+")
         @compiler[job][arch].puts "#{asm}\n#{init_func}\n#{ruby_path}"
         @compiler[job][arch].gets # wait to finish compilation
