@@ -367,7 +367,35 @@ EOS
       end
       sh command do |ok, status|
         if !ok
-          App.fail "Vendor project \"#{@path}\" failed to compile. See full error by running task with --trace."
+          App.fail <<-S.strip
+Vendor project \"#{@path}\" failed to compile. See full error by running task with --trace.
+
+NOTE: You may want to try the following:
+
+- Kill and reset any running simulators:
+
+killall "Simulator" 2> /dev/null && xcrun simctl erase all
+
+- Make sure you have the latest version of Xcode installed and run:
+
+  sudo rm -rf /Library/Developer/CommandLineTools
+  sudo xcode-select --install
+  sudo xcode-select --reset
+
+- Make sure you've accepted the EULA for Xcode, either by opening Xcode or running:
+
+  sudo xcodebuild -license accept
+
+- Remove any cached builds
+
+  rm -rf ./vendor/Podfile.lock
+  rm -rf ./vendor/Pods
+  rm -rf ./vendor/build
+  rm -rf ./build
+  rm -rf ~/Library/RubyMotion
+  rake clean:all
+  rake pod:install
+S
         end
       end
     end
