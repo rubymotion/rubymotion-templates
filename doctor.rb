@@ -11,13 +11,85 @@ module Motion; module Project
         verify_community_templates
         verify_community_commands
         unless silent
-          puts "* INFO: `motion doctor` ran successfully and found no issues. If you are still unable to build your applications, come to the Slack Channel and ask for help there: http://slack.rubymotion.com."
+          print_environment_info
+          puts ""
+          puts "* SUCCESS: `motion doctor` ran successfully and found no issues.\n\nIf you are still unable to build your applications, you can find help in our Slack Channel (provide the information above): http://slack.rubymotion.com."
         end
       end
     end
 
+    def exec_and_join command, delimiter
+      `#{command}`.split("\n").map {|l| l.strip }.reject {|l| l.length == 0}.join(delimiter)
+    end
+
+    def print_environment_info
+      puts "= ENVIRONMENT INFO ="
+      puts "= RubyMotion ="
+      puts "version:      " + `motion --version`
+      puts "osx sdks:     " + `ls /Library/RubyMotion/data/osx`.each_line.map {|l| l.strip}.join(", ")
+      puts "ios sdks:     " + `ls /Library/RubyMotion/data/ios`.each_line.map {|l| l.strip}.join(", ")
+
+      if Dir.exist? '/Library/RubyMotion/data/tvos'
+        puts "tv sdks:      " + `ls /Library/RubyMotion/data/tvos`.each_line.map {|l| l.strip}.join(", ")
+      else
+        puts "tv sdks:      " + "(none)"
+      end
+
+      if Dir.exist? '/Library/RubyMotion/data/watchos'
+        puts "watch sdks:   " + `ls /Library/RubyMotion/data/watchos`.each_line.map {|l| l.strip}.join(", ")
+      else
+        puts "watch sdks:   " + "(none)"
+      end
+
+      puts "android sdks: " + `ls /Library/RubyMotion/data/android`.each_line.map {|l| l.strip}.join(", ")
+
+      puts "= xcodebuild ="
+      puts `xcodebuild -version`
+      puts "= clang ="
+      puts `clang --version`
+      puts "= xcode-select ="
+      puts "version: " + `xcode-select --version`
+      puts "path:    " + `xcode-select --print-path`
+      puts "= Xcode ="
+      puts "osx platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/", ", ")
+      puts "ios platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/", ", ")
+      puts "tv  platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/", ", ")
+      puts "watch  platform: " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/", ", ")
+      puts "= Android ="
+      if Dir.exist? File.expand_path('~/.rubymotion-android/sdk/platforms')
+        puts "android sdks:    " + exec_and_join("ls ~/.rubymotion-android/sdk/platforms/", ", ")
+      else
+        puts "android sdks:    (none)"
+      end
+
+      if Dir.exist? File.expand_path('~/.rubymotion-android/ndk')
+        puts "android ndk:     " + exec_and_join("cat ~/.rubymotion-android/ndk/source.properties", " ")
+      else
+        puts "android ndk:     (none)"
+      end
+      puts "= Java ="
+      puts `java -version`.strip
+      puts "= MacOS ="
+      puts `system_profiler SPSoftwareDataType`.each_line.map {|l| l.strip}.find {|l| l =~ /System Version:/}
+      puts "= ENV ="
+      puts "RUBYMOTION_ANDROID_SDK=" + ENV["RUBYMOTION_ANDROID_SDK"]
+      puts "RUBYMOTION_ANDROID_NDK=" + ENV["RUBYMOTION_ANDROID_NDK"]
+      puts "OBJC_DISABLE_INITIALIZE_FORK_SAFETY=" + ENV["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"]
+      puts "= Ruby Manager ="
+      puts "rvm:    #{`which rvm`}"
+      puts "rbenv:  #{`which rbenv`}"
+      puts "chruby: #{`which chruby`}"
+      puts "asdf:   #{`which asdf`}"
+      puts "= Brew ="
+      puts `brew --version`
+      puts exec_and_join("brew list", ", ")
+    rescue Exception => e
+      raise_error "Failure in running Doctor#print_environment_info: #{e}"
+    end
+
     def raise_error message
-        raise <<-S
+      puts ""
+      raise <<-S
 ======================================================================
 * ERROR:
 #{message}
@@ -25,6 +97,9 @@ module Motion; module Project
 * NOTE:
 If you know what you are doing, Setting the environment variable
 RM_BYPASS_DOCTOR=1 will skip RubyMotion's install verifications.
+
+* HELP:
+Find help in our Slack Channel: http://slack.rubymotion.com
 ======================================================================
 S
     end
