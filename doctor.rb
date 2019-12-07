@@ -72,9 +72,9 @@ module Motion; module Project
       puts "= MacOS ="
       puts `system_profiler SPSoftwareDataType`.each_line.map {|l| l.strip}.find {|l| l =~ /System Version:/}
       puts "= ENV ="
-      puts "RUBYMOTION_ANDROID_SDK=" + ENV["RUBYMOTION_ANDROID_SDK"]
-      puts "RUBYMOTION_ANDROID_NDK=" + ENV["RUBYMOTION_ANDROID_NDK"]
-      puts "OBJC_DISABLE_INITIALIZE_FORK_SAFETY=" + ENV["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"]
+      puts "RUBYMOTION_ANDROID_SDK=" + ENV.fetch("RUBYMOTION_ANDROID_SDK", '')
+      puts "RUBYMOTION_ANDROID_NDK=" + ENV.fetch("RUBYMOTION_ANDROID_NDK", '')
+      puts "OBJC_DISABLE_INITIALIZE_FORK_SAFETY=" + ENV.fetch("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", '')
       puts "= Ruby Manager ="
       puts "rvm:    #{`which rvm`}"
       puts "rbenv:  #{`which rbenv`}"
