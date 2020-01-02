@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 $:.unshift("/Library/RubyMotion/lib")
+$:.unshift("~/.rubymotion/rubymotion-templates")
 require 'motion/project/template/android'
 
 begin
@@ -11,4 +12,18 @@ end
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = '<%= name %>'
+  app.version_name = "1.0.0"
+  app.version_code = 1
+
+  # 64 bit support for Play Store
+  app.archs << 'arm64-v8a'
+
+  # uncomment lines below when using x86 emulators
+  # app.development do
+  #   app.archs += ['x86']
+  # end
+
+  app.manifest.child('application') do |application|
+    application['android:icon'] = '@mipmap/ic_launcher'
+  end
 end
