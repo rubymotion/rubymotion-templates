@@ -504,7 +504,8 @@ module Motion; module Project
       includes = ['-I.'] + headers.map { |header| "-I'#{File.dirname(header)}'" }.uniq
       exceptions = exceptions.map { |x| "\"#{x}\"" }.join(' ')
       c_flags = "#{c_flags} -isysroot '#{sdk_path}' #{bridgesupport_cflags} #{includes.join(' ')}"
-      sh "RUBYOPT='' '#{File.join(bindir, 'gen_bridge_metadata')}' #{bridgesupport_flags} --cflags \"#{c_flags}\" --headers \"#{headers_file.path}\" -o '#{bs_file}' #{ "-e #{exceptions}" if exceptions.length != 0}"
+      command = "RUBYOPT='' '#{File.join(bindir, 'gen_bridge_metadata')}' #{bridgesupport_flags} --cflags \"#{c_flags}\" --headers \"#{headers_file.path}\" -o '#{bs_file}' #{ "-e #{exceptions}" if exceptions.length != 0}"
+      defined?(Bundler) ? Bundler.with_clean_env { sh(command) } : sh(command)
     end
 
     def define_global_env_txt
