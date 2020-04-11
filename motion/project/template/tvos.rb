@@ -107,12 +107,10 @@ END
     end
   end
 
-  # TODO: Do not hardcode
-  device_name = "Apple TV"
-
   app_bundle = App.config.app_bundle('AppleTVSimulator')
   kernel_path = File.join(App.config.datadir, "AppleTVSimulator", "kernel-x86_64.bc")
-
+  
+  device_name = ENV["device_name"]
   # Launch the simulator.
   repl_launcher = Motion::Project::REPLLauncher.new({
     "arguments" => ENV['args'],
@@ -211,6 +209,7 @@ task :device => :archive do
       "device-id" => device_id,
       "app-bundle-path" => App.config.app_bundle('AppleTVOS'),
       "xcode-path" => App.config.xcode_dir,
+      "device-name" => ENV["device_name"],
       "bs_files" => [App.config.bridgesupport_files, App.config.vendor_projects.map(&:bs_files)].flatten,
       "verbose" => App::VERBOSE
     })
