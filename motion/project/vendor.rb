@@ -361,11 +361,8 @@ EOS
     end
 
     def invoke_xcodebuild(cmd)
-      puts "#{XCODEBUILD_PATH} #{cmd}"
+      App.info "xcodebuild", "#{XCODEBUILD_PATH} #{cmd}"
       command = "set -o pipefail; #{XCODEBUILD_PATH} #{cmd}"
-      unless App::VERBOSE
-        command << " 2>&1 | env RM_XCPRETTY_PRINTER_PROJECT_ROOT='#{project_dir}' '#{File.join(@config.motiondir, 'vendor/XCPretty/bin/xcpretty')}' --printer '#{File.join(@config.motiondir, 'lib/motion/project/vendor/xcpretty_printer.rb')}'"
-      end
       sh command do |ok, status|
         if !ok
           App.fail <<-S.strip
