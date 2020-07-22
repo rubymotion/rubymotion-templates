@@ -49,12 +49,12 @@ module Motion; module Project
       puts `clang --version`
       puts "= xcode-select ="
       puts "version: " + `xcode-select --version`
-      puts "path:    " + `xcode-select --print-path`
+      puts "path:    " + xcode_path
       puts "= Xcode ="
-      puts "osx platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/", ", ")
-      puts "ios platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/", ", ")
-      puts "tv  platform:    " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/", ", ")
-      puts "watch  platform: " + exec_and_join("ls /Applications/Xcode.app/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/", ", ")
+      puts "osx platform:    " + exec_and_join("ls #{xcode_path}/Platforms/MacOSX.platform/Developer/SDKs/", ", ")
+      puts "ios platform:    " + exec_and_join("ls #{xcode_path}/Platforms/iPhoneOS.platform/Developer/SDKs/", ", ")
+      puts "tv  platform:    " + exec_and_join("ls #{xcode_path}/Platforms/AppleTVOS.platform/Developer/SDKs/", ", ")
+      puts "watch  platform: " + exec_and_join("ls #{xcode_path}/Platforms/WatchOS.platform/Developer/SDKs/", ", ")
       puts "= Android ="
       if Dir.exist? File.expand_path('~/.rubymotion-android/sdk/platforms')
         puts "android sdks:    " + exec_and_join("ls ~/.rubymotion-android/sdk/platforms/", ", ")
@@ -87,6 +87,10 @@ module Motion; module Project
       raise_error "Failure in running Doctor#print_environment_info: #{e}"
     end
 
+    def xcode_path
+      @xcode_path ||= `xcode-select --print-path`.strip
+    end
+
     def raise_error message
       puts ""
       raise <<-S
@@ -115,16 +119,17 @@ S
     end
 
     def verify_swift
-      return if File.exist?(File.expand_path("/Applications/Xcode.app/Contents/Frameworks/.swift-5-staged"))
-      rubymotion_versions = ['6.0', '6.1', '6.2']
-      min_macos_version = version_to_i '10.14.4'
-      if rubymotion_versions.include?(rubymotion_version) && version_to_i(macos_version) >= min_macos_version
+      xcode_frameworks_path = xcode_path.sub('/Developer', '/Frameworks')
+      return if File.exist?(File.expand_path("#{xcode_frameworks_path}/.swift-5-staged"))
+      min_rubymotion_version = '6.0'
+      min_macos_version = '10.14.4'
+      if version_to_i(rubymotion_version) >= version_to_i(min_rubymotion_version) && version_to_i(macos_version) >= version_to_i(min_macos_version)
         raise_error <<-S
 Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode (or has not been marked as staged).
 You must run the following commands to fix Xcode (commands may require sudo):
 
-    cp -r /usr/lib/swift/*.dylib /Applications/Xcode.app/Contents/Frameworks/
-    touch /Applications/Xcode.app/Contents/Frameworks/.swift-5-staged
+    cp -r /usr/lib/swift/*.dylib #{xcode_frameworks_path}/
+    touch #{xcode_frameworks_path}/.swift-5-staged
 
 Rerun build after you have ran the commands above.
 S
