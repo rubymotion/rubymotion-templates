@@ -7,97 +7,131 @@ module Motion; module Project
         puts "* WARNING: Bypassing `motion doctor`, I hope you know what you're doing!"
         return
       else
+        @errors = []
         verify_swift
         verify_community_templates
         verify_community_commands
-        unless silent
-          print_environment_info
-          puts ""
-          puts "* SUCCESS: `motion doctor` ran successfully and found no issues.\n\nIf you are still unable to build your applications, you can find help in our Slack Channel (provide the information above): http://slack.rubymotion.com."
+        print_environment_info unless silent
+
+        if @errors.empty?
+          unless silent
+            puts <<-S
+======================================================================
+* #{color :green, 'Success!'} `motion doctor` ran successfully and found no issues.
+
+If you are still unable to build your applications, you can find help in our Slack Channel (provide the information above): http://slack.rubymotion.com."
+======================================================================
+S
+          end
+        else
+          puts <<-S
+======================================================================
+* #{bold(color :red, 'ERROR:')} #{@errors.join("\n")}
+* NOTE:
+If you know what you are doing, Setting the environment variable
+RM_BYPASS_DOCTOR=1 will skip RubyMotion's install verifications.
+
+* HELP:
+Find help in our Slack Channel: http://slack.rubymotion.com
+======================================================================
+S
+          exit 1
         end
       end
     end
 
-    def exec_and_join command, delimiter
-      `#{command}`.split("\n").map {|l| l.strip }.reject {|l| l.length == 0}.join(delimiter)
-    end
 
     def print_environment_info
-      puts "= ENVIRONMENT INFO ="
-      puts "= RubyMotion ="
-      puts "version:      " + `motion --version`
+      puts bold "= ENVIRONMENT INFO ="
+      puts "Swift Runtime:        " + (swift_runtime? && swift_staged? ? '✅' : '❌')
+      puts "RubyMotion Templates: " + (rubymotion_templates? ? '✅' : '❌')
+      puts "RubyMotion Commands:  " + (rubymotion_commands? ? '✅' : '❌')
+
+      puts bold "= RubyMotion ="
+      puts "version:      " + rubymotion_version
       puts "osx sdks:     " + `ls /Library/RubyMotion/data/osx`.each_line.map {|l| l.strip}.join(", ")
       puts "ios sdks:     " + `ls /Library/RubyMotion/data/ios`.each_line.map {|l| l.strip}.join(", ")
-
       if Dir.exist? '/Library/RubyMotion/data/tvos'
         puts "tv sdks:      " + `ls /Library/RubyMotion/data/tvos`.each_line.map {|l| l.strip}.join(", ")
       else
         puts "tv sdks:      " + "(none)"
       end
-
       if Dir.exist? '/Library/RubyMotion/data/watchos'
         puts "watch sdks:   " + `ls /Library/RubyMotion/data/watchos`.each_line.map {|l| l.strip}.join(", ")
       else
         puts "watch sdks:   " + "(none)"
       end
-
       puts "android sdks: " + `ls /Library/RubyMotion/data/android`.each_line.map {|l| l.strip}.join(", ")
 
-      puts "= xcodebuild ="
+      puts bold "= xcodebuild ="
       puts `xcodebuild -version`
-      puts "= clang ="
+
+      puts bold "= clang ="
       puts `clang --version`
-      puts "= xcode-select ="
+
+      puts bold "= xcode-select ="
       puts "version: " + `xcode-select --version`
       puts "path:    " + xcode_path
-      puts "= Xcode ="
-      puts "osx platform:    " + exec_and_join("ls #{xcode_path}/Platforms/MacOSX.platform/Developer/SDKs/", ", ")
-      puts "ios platform:    " + exec_and_join("ls #{xcode_path}/Platforms/iPhoneOS.platform/Developer/SDKs/", ", ")
-      puts "tv  platform:    " + exec_and_join("ls #{xcode_path}/Platforms/AppleTVOS.platform/Developer/SDKs/", ", ")
-      puts "watch  platform: " + exec_and_join("ls #{xcode_path}/Platforms/WatchOS.platform/Developer/SDKs/", ", ")
-      puts "= Android ="
+
+      puts bold "= Xcode ="
+      puts "osx platform:   " + exec_and_join("ls #{xcode_path}/Platforms/MacOSX.platform/Developer/SDKs/", ", ")
+      puts "ios platform:   " + exec_and_join("ls #{xcode_path}/Platforms/iPhoneOS.platform/Developer/SDKs/", ", ")
+      puts "tv platform:    " + exec_and_join("ls #{xcode_path}/Platforms/AppleTVOS.platform/Developer/SDKs/", ", ")
+      puts "watch platform: " + exec_and_join("ls #{xcode_path}/Platforms/WatchOS.platform/Developer/SDKs/", ", ")
+
+      puts bold "= Android ="
       if Dir.exist? File.expand_path('~/.rubymotion-android/sdk/platforms')
         puts "android sdks:    " + exec_and_join("ls ~/.rubymotion-android/sdk/platforms/", ", ")
       else
         puts "android sdks:    (none)"
       end
-
       if Dir.exist? File.expand_path('~/.rubymotion-android/ndk')
         puts "android ndk:     " + exec_and_join("cat ~/.rubymotion-android/ndk/source.properties", " ")
       else
         puts "android ndk:     (none)"
       end
-      puts "= Java ="
-      puts `java -version`.strip
-      puts "= MacOS ="
+
+      puts bold "= Java ="
+      puts `java -version 2>&1`.strip
+
+      puts bold "= MacOS ="
       puts `system_profiler SPSoftwareDataType`.each_line.map {|l| l.strip}.find {|l| l =~ /System Version:/}
-      puts "= ENV ="
+
+      puts bold "= ENV ="
       puts "RUBYMOTION_ANDROID_SDK=" + ENV.fetch("RUBYMOTION_ANDROID_SDK", '')
       puts "RUBYMOTION_ANDROID_NDK=" + ENV.fetch("RUBYMOTION_ANDROID_NDK", '')
       puts "OBJC_DISABLE_INITIALIZE_FORK_SAFETY=" + ENV.fetch("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", '')
-      puts "= Ruby Manager ="
+
+      puts bold "= Ruby Manager ="
       puts "rvm:    #{`which rvm`}"
       puts "rbenv:  #{`which rbenv`}"
       puts "chruby: #{`which chruby`}"
       puts "asdf:   #{`which asdf`}"
-      puts "= Brew ="
+
+      puts bold "= Homebrew ="
       puts `brew --version`
       puts exec_and_join("brew list", ", ")
     rescue Exception => e
       raise_error "Failure in running Doctor#print_environment_info: #{e}"
     end
 
+    def exec_and_join command, delimiter
+      `#{command}`.split("\n").map {|l| l.strip }.reject {|l| l.length == 0}.join(delimiter)
+    end
+
     def xcode_path
       @xcode_path ||= `xcode-select --print-path`.strip
     end
 
-    def raise_error message
-      puts ""
-      raise <<-S
-======================================================================
-* ERROR:
-#{message}
+    def xcode_frameworks_path
+      @xcode_frameworks_path ||= xcode_path.sub('/Developer', '/Frameworks')
+    end
 
+    def print_errors
+      puts ""
+      puts <<-S
+======================================================================
+* #{bold(color :red, 'ERROR:')} #{@errors.join("\n")}
 * NOTE:
 If you know what you are doing, Setting the environment variable
 RM_BYPASS_DOCTOR=1 will skip RubyMotion's install verifications.
@@ -111,7 +145,8 @@ S
     def macos_version
       `sw_vers`.each_line.to_a[1].split(':').last.strip
     rescue
-      raise_error "Unable to determine the version of Mac OS X."
+      @errors << "Unable to determine the version of Mac OS X."
+      nil
     end
 
     def kill_simulators_command
@@ -119,41 +154,68 @@ S
     end
 
     def verify_swift
-      xcode_frameworks_path = xcode_path.sub('/Developer', '/Frameworks')
-      return if File.exist?(File.expand_path("#{xcode_frameworks_path}/.swift-5-staged"))
+      return if swift_staged?
+
       min_rubymotion_version = '6.0'
       min_macos_version = '10.14.4'
-      if version_to_i(rubymotion_version) >= version_to_i(min_rubymotion_version) && version_to_i(macos_version) >= version_to_i(min_macos_version)
-        raise_error <<-S
-Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode (or has not been marked as staged).
-You must run the following commands to fix Xcode (commands may require sudo):
+      return unless version_to_i(rubymotion_version) >= version_to_i(min_rubymotion_version) && version_to_i(macos_version) >= version_to_i(min_macos_version)
+
+      if swift_runtime?
+        @errors << <<-S
+Mojave #{macos_version}'s Swift 5 runtime was not marked as staged.
+Run the following command (may require sudo):
+
+    touch #{xcode_frameworks_path}/.swift-5-staged
+
+Rerun build after you have run this command.
+S
+      else
+        @errors << <<-S
+Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode.
+You must run the following commands to fix Xcode (may require sudo):
 
     cp -r /usr/lib/swift/*.dylib #{xcode_frameworks_path}/
     touch #{xcode_frameworks_path}/.swift-5-staged
 
-Rerun build after you have ran the commands above.
+Rerun build after you have run these commands.
 S
       end
     end
 
+    def swift_staged?
+      File.exist?(File.expand_path("#{xcode_frameworks_path}/.swift-5-staged"))
+    end
+
+    def swift_runtime?
+      Dir["#{xcode_frameworks_path}/libswift*.dylib"].any?
+    end
+
     def verify_community_templates
-      if !Dir.exist?(File.expand_path("~/.rubymotion/rubymotion-templates"))
-        raise_error "It doesn't look like you have RubyMotion templates downloaded. Please run `motion repo`."
+      unless rubymotion_templates?
+        @errors << "It doesn't look like you have RubyMotion templates downloaded. Please run `motion repo`."
       end
 
-      if !File.exist?(File.expand_path "~/.rubymotion/rubymotion-templates/required-marker-62")
-        raise_error "It doesn't look like you have the latest RubyMotion templates downloaded. Please run `motion repo`."
+      unless File.exist?(File.expand_path "~/.rubymotion/rubymotion-templates/required-marker-62")
+        @errors << "It doesn't look like you have the latest RubyMotion templates downloaded. Please run `motion repo`."
       end
     end
 
+    def rubymotion_templates?
+      Dir.exist?(File.expand_path("~/.rubymotion/rubymotion-templates"))
+    end
+
     def verify_community_commands
-      if !Dir.exist?(File.expand_path("~/.rubymotion/rubymotion-templates"))
-        raise_error "It doesn't look like you have RubyMotion commands downloaded. Please run `motion repo`."
+      unless rubymotion_commands?
+        @errors << "It doesn't look like you have RubyMotion commands downloaded. Please run `motion repo`."
       end
 
-      if !File.exist?(File.expand_path "~/.rubymotion/rubymotion-command/required-marker-62")
-        raise_error "It doesn't look like you have the latest RubyMotion commands downloaded. Please run `motion repo`."
+      unless File.exist?(File.expand_path "~/.rubymotion/rubymotion-command/required-marker-62")
+        @errors << "It doesn't look like you have the latest RubyMotion commands downloaded. Please run `motion repo`."
       end
+    end
+
+    def rubymotion_commands?
+      Dir.exist?(File.expand_path("~/.rubymotion/rubymotion-command"))
     end
 
     def xcode_versions
@@ -178,19 +240,27 @@ S
     end
 
     def rubymotion_version
-      `motion --version`.each_line.first.strip
+      @rubymotion_version ||= `motion --version`.strip
     end
 
     def xcode_version
-      xcode_version_data =
-        `xcodebuild -version`.each_line
-                             .first
-                             .strip
-                             .gsub('Xcode', '')
-                             .split('.')
-                             .map(&:strip)
-                             .take(2)
-                             .join('.')
+      `xcodebuild -version`.lines
+                           .first
+                           .strip
+                           .gsub('Xcode', '')
+                           .split('.')
+                           .map(&:strip)
+                           .take(2)
+                           .join('.')
+    end
+
+    def bold(text)
+      "\e[1m#{text}\e[0m"
+    end
+
+    def color(c, text)
+      code = { red: 31, green: 32 }[c]
+      "\e[#{code}m#{text}\e[0m"
     end
   end
 end; end
