@@ -19,7 +19,7 @@ module Motion; module Project
 ======================================================================
 * #{color :green, 'Success!'} `motion doctor` ran successfully and found no issues.
 
-If you are still unable to build your applications, you can find help in our Slack Channel (provide the information above): http://slack.rubymotion.com."
+Still need help? Join us on Slack: http://slack.rubymotion.com
 ======================================================================
 S
           end
@@ -108,11 +108,19 @@ S
       puts "chruby: #{`which chruby`}"
       puts "asdf:   #{`which asdf`}"
 
+      puts bold "= Ruby ="
+      puts `which ruby`
+      puts `ruby -v`
+
       puts bold "= Homebrew ="
-      puts `brew --version`
-      puts exec_and_join("brew list", ", ")
-    rescue Exception => e
-      raise_error "Failure in running Doctor#print_environment_info: #{e}"
+      if `which brew`.empty?
+        puts 'Homebrew is not installed.'
+      else
+        puts `brew --version`
+        puts exec_and_join("brew list", ", ")
+      end
+    rescue => e
+      @errors << "Failure in running Doctor#print_environment_info: #{e}"
     end
 
     def exec_and_join command, delimiter
@@ -125,21 +133,6 @@ S
 
     def xcode_frameworks_path
       @xcode_frameworks_path ||= xcode_path.sub('/Developer', '/Frameworks')
-    end
-
-    def print_errors
-      puts ""
-      puts <<-S
-======================================================================
-* #{bold(color :red, 'ERROR:')} #{@errors.join("\n")}
-* NOTE:
-If you know what you are doing, Setting the environment variable
-RM_BYPASS_DOCTOR=1 will skip RubyMotion's install verifications.
-
-* HELP:
-Find help in our Slack Channel: http://slack.rubymotion.com
-======================================================================
-S
     end
 
     def macos_version
