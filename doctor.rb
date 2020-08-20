@@ -156,21 +156,17 @@ S
       if swift_runtime?
         @errors << <<-S
 Mojave #{macos_version}'s Swift 5 runtime was not marked as staged.
-Run the following command (may require sudo):
+To fix this error, run the following command:
 
-    touch #{xcode_frameworks_path}/.swift-5-staged
-
-Rerun build after you have run this command.
+    #{'sudo ' unless File.writable?(xcode_frameworks_path)}touch #{xcode_frameworks_path}/.swift-5-staged
 S
       else
         @errors << <<-S
 Mojave #{macos_version}'s Swift 5 runtime was not found in Xcode.
-You must run the following commands to fix Xcode (may require sudo):
+To fix this error, run the following commands:
 
-    cp -r /usr/lib/swift/*.dylib #{xcode_frameworks_path}/
-    touch #{xcode_frameworks_path}/.swift-5-staged
-
-Rerun build after you have run these commands.
+    #{'sudo ' unless File.writable?(xcode_frameworks_path)}cp -r /usr/lib/swift/*.dylib #{xcode_frameworks_path}/
+    #{'sudo ' unless File.writable?(xcode_frameworks_path)}touch #{xcode_frameworks_path}/.swift-5-staged
 S
       end
     end
