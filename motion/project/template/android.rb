@@ -358,7 +358,7 @@ EOS
       App.info 'Create', libpayload_path
       FileUtils.mkdir_p(File.dirname(libpayload_path))
       sh "#{App.config.cc} #{App.config.cflags(arch)} -c \"#{payload_c}\" -o \"#{payload_o}\""
-      sh "#{App.config.cxx} #{App.config.ldflags(arch)} \"#{payload_o}\" #{ruby_objs.map { |o, _| "\"" + o + "\"" }.join(' ')} -o \"#{libpayload_path}\" #{App.config.ldlibs_pre(arch)} #{App.config.libs[App.config.armeabi_directory_name(arch)].join(' ')} #{App.config.ldlibs_post(arch)}"
+      sh "#{App.config.cxx} #{App.config.ldflags(arch)} \"#{payload_o}\" #{ruby_objs.map { |o, _| "\"" + o + "\"" }.join(' ')} -o \"#{libpayload_path}\" #{App.config.ldlibs_pre(arch)} #{App.config.libs[App.config.armeabi_directory_name(arch)].join(' ')} #{App.config.ldlibs_post(arch)} -v"
     end
 
     # Copy the gdb server.
@@ -558,7 +558,7 @@ EOS
 
   # Generate the dex file.
   if App.config.multidex
-    FileUtils.rm Dir.glob(File.join(app_build_dir, '*.dex'))
+    FileUtils.rm Dir.glob(File.join(app_build_dir, '*.dex')).sort
     main_dex_list = <<-EOS
 android/support/multidex/BuildConfig.class
 android/support/multidex/MultiDex$V14.class

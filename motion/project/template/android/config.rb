@@ -135,7 +135,7 @@ module Motion; module Project
 
       if Motion::Project::Config.starter?
         self.assets_dirs << File.join(File.dirname(__FILE__), 'launch_image')
-        self.api_version = '27'
+        self.api_version = '28'
       end
     end
 
@@ -298,11 +298,11 @@ module Motion; module Project
     def toolchain_flags(arch)
       case common_arch(arch)
         when 'arm'
-          "-target #{arch}-none-linux-androideabi -gcc-toolchain \"#{ndk_path}/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64\""
+          "-target #{arch}-none-linux-androideabi -gcc-toolchain \"#{ndk_path}/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64\" -I\"#{ndk_path}/sysroot/usr/include/arm-linux-androideabi\""
         when 'arm64'
-          "-target arm64-v8a-linux-androideabi-none -gcc-toolchain \"#{ndk_path}/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64\""
+          "-target arm64-v8a-linux-androideabi-none -gcc-toolchain \"#{ndk_path}/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64\" -I\"#{ndk_path}/sysroot/usr/include/aarch64-linux-android\""
         when 'x86'
-          "-target i686-none-linux-android -gcc-toolchain \"#{ndk_path}/toolchains/x86-4.9/prebuilt/darwin-x86_64\""
+          "-target i686-none-linux-android -gcc-toolchain \"#{ndk_path}/toolchains/x86-4.9/prebuilt/darwin-x86_64\" -I\"#{ndk_path}/sysroot/usr/include/x86_64-linux-android\""
       end
     end
 
@@ -331,7 +331,7 @@ module Motion; module Project
           '9'
         when '20'
           '19'
-        when '25', '26', '27'
+        when '25', '26', '27', '28'
           '24'
         else
           api_version
@@ -343,7 +343,7 @@ module Motion; module Project
         when 'armv5te'
           "-mtune=xscale"
       end
-      "#{asflags(arch)} #{archflags} -MMD -MP -fpic -ffunction-sections -funwind-tables -fexceptions -fstack-protector -fno-rtti -fno-strict-aliasing -O0 -g3 -fno-omit-frame-pointer -DANDROID -I\"#{ndk_path}/platforms/android-#{api_version_ndk}/arch-#{common_arch(arch)}/usr/include\" -Wformat -Werror=format-security -Wno-unknown-attributes"
+      "#{asflags(arch)} #{archflags} -MMD -MP -fpic -ffunction-sections -funwind-tables -fexceptions -fstack-protector -fno-rtti -fno-strict-aliasing -O0 -g3 -fno-omit-frame-pointer -DANDROID -I\"#{ndk_path}/sysroot/usr/include\" -Wformat -Werror=format-security -Wno-unknown-attributes"
     end
 
     def cxxflags(arch)
@@ -365,7 +365,7 @@ module Motion; module Project
     end
 
     def ldflags(arch)
-      "#{toolchain_flags(arch)} -Wl,-soname,#{payload_library_filename} -shared --sysroot=\"#{ndk_path}/platforms/android-#{api_version_ndk}/arch-#{common_arch(arch)}\" -lgcc -no-canonical-prefixes -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -O0 -g3"
+      "#{toolchain_flags(arch)} -Wl,-soname,#{payload_library_filename} -shared --sysroot=\"#{ndk_path}/sysroot\" -lgcc -no-canonical-prefixes -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -O0 -g3"
     end
 
     def versioned_datadir
@@ -378,7 +378,8 @@ module Motion; module Project
 
     def ldlibs_pre(arch)
       # The order of the libraries matters here.
-      "-L\"#{ndk_path}/platforms/android-#{api_version_ndk}/arch-#{common_arch(arch)}/usr/lib\" -lstdc++ -lc -lm -llog -L\"#{versioned_arch_datadir(arch)}\" -lrubymotion-static"
+      # -B controls where the linker will look for the crtbegin_so/crtend files
+      "-B\"#{ndk_path}/platforms/android-#{api_version_ndk}/arch-#{common_arch(arch)}/usr/lib\" -L\"#{ndk_path}/platforms/android-#{api_version_ndk}/arch-#{common_arch(arch)}/usr/lib\" -lstdc++ -lc -lm -llog -L\"#{versioned_arch_datadir(arch)}\" -lrubymotion-static"
     end
 
     def ldlibs_post(arch)
