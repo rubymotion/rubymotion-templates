@@ -509,7 +509,7 @@ module Motion; module Project
       c_flags = "#{c_flags} -isysroot '#{sdk_path}' #{bridgesupport_cflags} #{includes.join(' ')}"
       cmd = ("RUBYOPT='' '#{File.join(bindir, 'gen_bridge_metadata')}' #{bridgesupport_flags} --cflags \"#{c_flags}\" --headers \"#{headers_file.path}\" -o '#{bs_file}' #{ "-e #{exceptions}" if exceptions.length != 0}")
       App.info "gen_bridge_metadata", cmd
-      defined?(Bundler) ? Bundler.with_clean_env { sh(cmd) } : sh(cmd)
+      defined?(Bundler) ? Bundler.with_original_env { sh(cmd) } : sh(cmd)
     end
 
     def define_global_env_txt
