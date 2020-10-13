@@ -37,7 +37,12 @@ Motion::Project::App.setup do |app|
   # app.deployment_target = '10.0'
 
   # ===========================================================================================
-  # 4. Your app identifier is needed to deploy to an actual device. You do not need to set this
+  # 4. Set the architectures for which to build.
+  # ===========================================================================================
+  app.archs['iPhoneOS'] = ['arm64']
+
+  # ===========================================================================================
+  # 5. Your app identifier is needed to deploy to an actual device. You do not need to set this
   #    if you are using the simulator. You can create an app identifier at:
   #    https://developer.apple.com/account/ios/identifier/bundle. You must enroll into Apple's
   #    Developer program to get access to this screen (there is an annual fee of $99).
@@ -45,7 +50,7 @@ Motion::Project::App.setup do |app|
   # app.identifier = ''
 
   # ===========================================================================================
-  # 5. If you need to reference any additional iOS libraries, use the config array below.
+  # 6. If you need to reference any additional iOS libraries, use the config array below.
   #    Default libraries: UIKit, Foundation, CoreGraphics, CoreFoundation, CFNetwork, CoreAudio
   # ===========================================================================================
   # app.frameworks << "StoreKit"
@@ -57,7 +62,7 @@ Motion::Project::App.setup do |app|
   app.info_plist['ITSAppUsesNonExemptEncryption'] = false
 
   # ===========================================================================================
-  # 6. To deploy to an actual device, you will need to create a developer certificate at:
+  # 7. To deploy to an actual device, you will need to create a developer certificate at:
   #    https://developer.apple.com/account/ios/certificate/development
   #    The name of the certificate will be accessible via Keychain Access. Set the value you
   #    see there below.
@@ -65,7 +70,7 @@ Motion::Project::App.setup do |app|
   # app.codesign_certificate = ''
 
   # ===========================================================================================
-  # 7. To deploy to an actual device, you will need to create a provisioning profile. First:
+  # 8. To deploy to an actual device, you will need to create a provisioning profile. First:
   #    register your device at:
   #    https://developer.apple.com/account/ios/device/
   #
@@ -77,7 +82,7 @@ Motion::Project::App.setup do |app|
   # app.provisioning_profile = ''
 
   # ===========================================================================================
-  # 8. Similar to Step 7. Production, create a production certificate at:
+  # 9. Similar to Step 8. Production, create a production certificate at:
   #    https://developer.apple.com/account/ios/certificate/distribution.
   #    These values will need to be set to before you can deploy to the App Store. Compile
   #    using `rake clean archive:distribution` and upload the .ipa under ./build using
@@ -87,8 +92,8 @@ Motion::Project::App.setup do |app|
   # app.provisioning_profile = ''
 
   # ===========================================================================================
-  # 9. If you want to create a beta build. Uncomment the line below and set your profile to
-  #    point to your production provisions (Step 8).
+  # 10. If you want to create a beta build. Uncomment the line below and set your profile to
+  #     point to your production provisions (Step 9).
   # ===========================================================================================
   # app.entitlements['beta-reports-active'] = true
 end
