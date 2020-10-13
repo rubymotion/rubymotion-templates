@@ -36,7 +36,7 @@ Motion::Project::App.setup do |app|
     pod 'Google-Mobile-Ads-SDK'
   end
 
-  # resonable defaults
+  # reasonable defaults
   app.device_family = [:iphone, :ipad]
   app.interface_orientations = [:portrait]
   app.info_plist['UIRequiresFullScreen'] = true
@@ -66,7 +66,7 @@ end
 
 def define_icon_defaults!(app)
   # This is required as of iOS 11.0 (you must use asset catalogs to
-  # define icons or your app will be regected. More information in
+  # define icons or your app will be rejected. More information in
   # located in the readme.
 
   app.info_plist['CFBundleIcons'] = {
