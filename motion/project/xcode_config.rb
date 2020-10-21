@@ -118,10 +118,7 @@ module Motion; module Project
         App.fail "Deployment target #{deployment_target} is not supported by this version of RubyMotion. If you are using the Starter Version, make sure you are running the latest version of XCode, and both `app.deployment_target` and `app.sdk_version` are commented out in the Rakefile. If you are updating to a new version of RubyMotion or Xcode, be sure to open Xcode at least once, run `sudo xcode-select --reset`, and then `rake clean:all default`. If you need more help, come to the Slack Channel: http://motioneers.herokuapp.com."
       end
 
-      if ((sdk_version == '11.4' ||
-           sdk_version =~ /^12/  ||
-           sdk_version =~ /^13/  ||
-           sdk_version =~ /^14/) &&
+      if (Util::Version.new(sdk_version) >= Util::Version.new("11.4") &&
           (platforms.include?('iPhoneOS') || platforms.include?('iPhoneSimulator')) &&
           frameworks.include?('AVFoundation'))
         frameworks << 'CoreMedia'
