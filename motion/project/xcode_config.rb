@@ -96,6 +96,153 @@ module Motion; module Project
     def local_platform; raise; end
     def deploy_platform; raise; end
 
+    def xcode_metadata
+      {
+        '10.3' => {
+          :llvm  => 500,
+          :osx   => '10.14',
+          :ios   => '12.4',
+          :tv    => '12.4',
+          :watch => '5.3',
+          :clang => 'Apple LLVM version 10.0.1 (clang-1001.0.46.4)'
+        },
+        '11.0' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.0',
+          :tv    => '13.0',
+          :watch => '6.0',
+          :clang => ''
+        },
+        '11.1' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.1',
+          :tv    => '13.0',
+          :watch => '6.0',
+          :clang => ''
+        },
+        '11.2.1' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.2',
+          :tv    => '13.2',
+          :watch => '6.1',
+          :clang => 'Apple clang version 11.0.0 (clang-1100.0.33.12)'
+        },
+        '11.3' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.2',
+          :tv    => '13.2',
+          :watch => '6.1',
+          :clang => 'Apple clang version 11.0.0 (clang-1100.0.33.12)'
+        },
+        '11.3.1' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.2',
+          :tv    => '13.2',
+          :watch => '6.1',
+          :clang => 'Apple clang version 11.0.0 (clang-1100.0.33.12)'
+        },
+        '11.4' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.4',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '11.5' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.5',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '11.6' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.6',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '11.7' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.7',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.0' => {
+          :llvm  => 900,
+          :osx   => '11.0',
+          :ios   => '14.0',
+          :tv    => '14.0',
+          :watch => '7.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.1' => {
+          :llvm  => 900,
+          :osx   => '11.0',
+          :ios   => '14.1',
+          :tv    => '14.0',
+          :watch => '7.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.1.1' => {
+          :llvm  => 900,
+          :osx   => '11.0',
+          :ios   => '14.2',
+          :tv    => '14.2',
+          :watch => '7.1',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.2' => {
+          :llvm  => 900,
+          :osx   => '11.0',
+          :ios   => '14.2',
+          :tv    => '14.2',
+          :watch => '7.1',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        }
+      }
+    end
+
+    def xcode_metadata_to_s version_strings = []
+      if version_strings.is_a? String
+        version_strings = [version_strings]
+      end
+
+      result = version_strings.map do |version_string|
+        xcode_metadata.map do |k, v|
+          if version_string == v[:ios] || version_string == v[:osx] || version_string == v[:tv] || version_string == v[:watch]
+            <<-S.strip
+* Xcode #{k}
+** OSX:    #{v[:osx]}
+** iOS:    #{v[:ios]}
+** TV:     #{v[:tv]}
+** Watch:  #{v[:watch]}
+S
+          else
+            nil
+          end
+        end.compact
+      end.flatten.join "\n"
+
+      if result.strip.length > 0
+        return "* Please install (one off) the following version(s) of Xcode. You can download any version of Xcode from http://developer.apple.com/downloads:\n#{result}"
+      else
+        return ""
+      end
+    rescue Exception => e
+      return ""
+    end
+
     def validate
       App.fail "OS X 10.9 or greater is required" if osx_host_version < Util::Version.new('10.9')
       App.fail "Xcode 6.x or greater is required" if Util::Version.new(xcode_version[0]) < Util::Version.new('6.0')
@@ -111,11 +258,27 @@ module Motion; module Project
 
       # deployment_target
       if Util::Version.new(deployment_target) > Util::Version.new(sdk_version)
-        App.fail "Deployment target `#{deployment_target}' must be equal or lesser than SDK version `#{sdk_version}'"
+        App.fail "Deployment target `#{deployment_target}' must be equal or lesser than SDK version `#{sdk_version}'\n#{xcode_metadata_to_s sdk_version}"
       end
 
       unless File.exist?(datadir)
-        App.fail "Deployment target #{deployment_target} is not supported by this version of RubyMotion. If you are using the Starter Version, make sure you are running the latest version of XCode, and both `app.deployment_target` and `app.sdk_version` are commented out in the Rakefile. If you are updating to a new version of RubyMotion or Xcode, be sure to open Xcode at least once, run `sudo xcode-select --reset`, and then `rake clean:all default`. If you need more help, come to the Slack Channel: http://motioneers.herokuapp.com."
+        versions = Dir.glob(File.join(platforms_dir, "#{deploy_platform}.platform/Developer/SDKs/#{deploy_platform}[1-9]*.sdk")).sort.map do |path|
+          File.basename(path).scan(/#{deploy_platform}(.*)\.sdk/)[0][0]
+        end
+
+        App.fail <<-S
+* ERROR: Deployment target #{deployment_target} is not supported by this version of RubyMotion.
+
+If you are using the Starter Version:
+1. Make sure you are running the latest version of XCode.
+2. Make sure both ~app.deployment_target~ and ~app.sdk_version~ are
+   commented out in the ~Rakefile~.
+3. If you've recently updated to a new version of RubyMotion or Xcode,
+   be sure to open Xcode at least once, run ~sudo xcode-select --reset~,
+   and then ~rake clean:all default~.
+4. If you need more help, come to the Slack Channel: http://slack.rubymotion.com.
+#{xcode_metadata_to_s supported_sdk_versions(versions)}
+S
       end
 
       if (Util::Version.new(sdk_version) >= Util::Version.new("11.4") &&
@@ -205,11 +368,13 @@ module Motion; module Project
           end
         end
         unless supported_version && !supported_version.empty?
-          App.fail("The requested deployment target SDK " \
-                   "is not available or supported by " \
-                   "RubyMotion at this time.\n" \
-                   "           Available SDKs: #{versions.join(', ')}\n" \
-                   "           Supported SDKs: #{supported_versions.join(', ')}")
+          version_string = xcode_metadata_to_s supported_versions
+          App.fail(<<-S)
+* ERROR: The requested deployment target SDK is not available or supported by RubyMotion at this time.
+Available SDKs: #{versions.join(', ')}
+Supported SDKs: #{supported_versions.join(', ')}
+#{version_string}
+S
         end
         supported_version
       end
