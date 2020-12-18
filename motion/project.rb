@@ -46,7 +46,15 @@ unless ENV['RM_TARGET_BUILD']
   # Check for updates.
   motion_bin_path = File.join(File.dirname(__FILE__), '../../bin/motion')
   command = "/usr/bin/ruby \"#{motion_bin_path}\" update --check"
-  defined?(Bundler) ? Bundler.with_clean_env { system(command) } : system(command)
+  if defined?(Bundler)
+    if Bundler.respond_to?(:with_unbundled_env)
+      Bundler.with_unbundled_env { system(command) }
+    else
+      Bundler.with_clean_env { system(command) }
+    end
+  else
+    system(command)
+  end
 end
 
 desc "Clear local build objects"
