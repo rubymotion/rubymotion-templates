@@ -303,7 +303,7 @@ S
         frameworks.uniq!
       end
 
-      if (sdk_version =~ /^12/)
+      if (Util::Version.new(sdk_version) >= Util::Version.new("12.0"))
         frameworks << "QuartzCore"
         frameworks << "CoreServices"
         frameworks.uniq!

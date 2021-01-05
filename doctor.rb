@@ -1,3 +1,4 @@
+# coding: utf-8
 # NOTE: This class is meant to have zero dependencies on external files (completely self contained),
 #       try not to take on external dependencies even if it means that code will be duplicated.
 module Motion; module Project
@@ -100,7 +101,6 @@ S
       puts bold "= ENV ="
       puts "RUBYMOTION_ANDROID_SDK=" + ENV.fetch("RUBYMOTION_ANDROID_SDK", '')
       puts "RUBYMOTION_ANDROID_NDK=" + ENV.fetch("RUBYMOTION_ANDROID_NDK", '')
-      puts "OBJC_DISABLE_INITIALIZE_FORK_SAFETY=" + ENV.fetch("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", '')
 
       puts bold "= Ruby Manager ="
       puts "rvm:    #{`which rvm`}"
@@ -149,9 +149,8 @@ S
     def verify_swift
       return if swift_staged?
 
-      min_rubymotion_version = '6.0'
-      min_macos_version = '10.14.4'
-      return unless version_to_i(rubymotion_version) >= version_to_i(min_rubymotion_version) && version_to_i(macos_version) >= version_to_i(min_macos_version)
+      return unless version_to_i(rubymotion_version) >= version_to_i('6.0')
+      return if version_to_i(rubymotion_version) >= version_to_i("7.15") # 7.15 and above no long require this check.
 
       if swift_runtime?
         @errors << <<-S
