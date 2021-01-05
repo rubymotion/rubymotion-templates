@@ -44,8 +44,7 @@ end
 
 unless ENV['RM_TARGET_BUILD']
   # Check for updates.
-  motion_bin_path = File.join(File.dirname(__FILE__), '../../bin/motion')
-  command = "/usr/bin/ruby \"#{motion_bin_path}\" update --check"
+  command = "motion update --check"
   if defined?(Bundler)
     if Bundler.respond_to?(:with_unbundled_env)
       Bundler.with_unbundled_env { system(command) }
