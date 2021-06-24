@@ -153,6 +153,8 @@ module Motion; module Project
 
       @compiler = []
 
+      gem_environment_gemdir = `gem environment gemdir`.strip
+
       # BEGIN PROC DEFINITION
       build_file = Proc.new do |files_build_dir, path, job|
         topic_id = BuildLog.topic_id!
@@ -169,8 +171,20 @@ module Motion; module Project
             or File.mtime(ruby) > File.mtime(obj))
 
 
+        if ENV['EXPERIMENTAL_INIT_FUNCTIONS']
+          unique_function_name = "MREP_" + rpath.gsub(gem_environment_gemdir, 'GEM')
+                                                .gsub(".", "_")
+                                                .gsub('/', '_')
+                                                .gsub(' ', '_')
+                                                .gsub('-', '_')
+                                                .gsub(/^__/, '')
+                                                .gsub(/^_/, '')
+        else
+          unique_function_name = "MREP_#{`/usr/bin/uuidgen`.strip.gsub('-', '')}"
+        end
+
         # Generate or retrieve init function.
-        init_func = should_rebuild ? "MREP_#{`/usr/bin/uuidgen`.strip.gsub('-', '')}" : `#{config.locate_binary('nm')} \"#{obj}\"`.scan(/T\s+_(MREP_.*)/)[0][0]
+        init_func = should_rebuild ? unique_function_name : `#{config.locate_binary('nm')} \"#{obj}\"`.scan(/T\s+_(MREP_.*)/)[0][0]
 
         BuildLog.org topic_id: topic_id,
                      type: :h2,
@@ -506,9 +520,15 @@ EOS
           App.warn "A gem or vendor library referenced stdc++, stdc++.6.0.9, libstdc++.6.0.9.tbd, or libstdc++.6.0.9.dylib. This deprecated link has been removed during the build process. To remove this warning, please audit your library dependency chain and update any harded coded dylib links to stdc++. For more information, refer to Xcode 10's release notes."
         end
 
-        puts File.read(objs_file.path)
+        topic_id = BuildLog.topic_id!
+        BuildLog.org topic_id: topic_id,
+                     type: :h3,
+                     title: "Object Files to Link.",
+                     text: BuildLog.format_src(type: "", text: File.read(objs_file.path))
 
         linker_command = "#{cxx} -o \"#{main_exec}\" #{entitlements} -filelist \"#{objs_file.path}\" #{config.ldflags(platform)} -L\"#{File.join(datadir, platform)}\" -lrubymotion-static -lobjc -licucore #{linker_option} #{framework_search_paths} #{frameworks} #{weak_frameworks} #{configuration_libs.join(' ')} #{vendor_libs}"
+
+        topic_id = BuildLog.topic_id!
         BuildLog.org topic_id: topic_id,
                      type: :h3,
                      title: "Linking",
