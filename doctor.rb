@@ -186,7 +186,8 @@ Java Development Kit (JDK) 1.8 is not installed.
 To fix this error, download here:
 
     https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
-S      end
+S
+      end
     end
     
     def java?
