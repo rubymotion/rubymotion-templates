@@ -10,6 +10,7 @@ module Motion; module Project
       else
         @errors = []
         verify_swift
+        verify_java
         verify_community_templates
         verify_community_commands
         print_environment_info unless silent
@@ -176,6 +177,20 @@ S
 
     def swift_runtime?
       Dir["#{xcode_frameworks_path}/libswift*.dylib"].any?
+    end
+    
+    def verify_java
+      unless java?
+        @errors << <<-S
+Java Development Kit (JDK) 1.8 is not installed.
+To fix this error, download here:
+
+    https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
+S      end
+    end
+    
+    def java?
+      system('/usr/libexec/java_home -F -v 1.8')
     end
 
     def verify_community_templates
