@@ -191,7 +191,8 @@ S
     end
     
     def java?
-      system('/usr/libexec/java_home -F -v 1.8')
+      `/usr/libexec/java_home -F -v 1.8`
+      $?.success?
     end
 
     def verify_community_templates
