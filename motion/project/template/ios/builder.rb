@@ -69,6 +69,8 @@ module Motion; module Project
         end
       end
 
+      topic_id = BuildLog.topic_id!
+
       # Copy the provisioning profile.
       bundle_provision = File.join(bundle_path, "embedded.mobileprovision")
       App.info 'Create', bundle_provision
@@ -90,12 +92,17 @@ module Motion; module Project
         sh "#{codesign_cmd} -f -s \"#{config.codesign_certificate}\" \"#{lib_path}\" 2> /dev/null"
       end
 
-      if File.mtime(config.project_file) > File.mtime(bundle_path) \
-          or !system("#{codesign_cmd} --verify \"#{bundle_path}\" >& /dev/null")
+      if File.mtime(config.project_file) > File.mtime(bundle_path) or !system("#{codesign_cmd} --verify \"#{bundle_path}\" >& /dev/null")
         App.info 'Codesign', bundle_path
         entitlements = File.join(config.versionized_build_dir(platform), "Entitlements.plist")
         File.open(entitlements, 'w') { |io| io.write(config.entitlements_data) }
-        sh "#{codesign_cmd} -f -s \"#{config.codesign_certificate}\" --entitlements #{entitlements} \"#{bundle_path}\""
+        entitlements_cmd = "#{codesign_cmd} -f -s \"#{config.codesign_certificate}\" --entitlements #{entitlements} \"#{bundle_path}\""
+        sh entitlements_cmd
+        BuildLog.org topic_id: topic_id,
+                     type: :h1,
+                     title: "Generating =Entitlements.plist=",
+                     text: [BuildLog.format_src(type: "sh", text: entitlements_cmd),
+                            BuildLog.format_src(type: "xml", text: File.read(entitlements))]
       end
     end
 
