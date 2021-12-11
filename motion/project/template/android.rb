@@ -361,6 +361,10 @@ EOS
       sh "#{App.config.cxx} #{App.config.ldflags(arch)} \"#{payload_o}\" #{ruby_objs.map { |o, _| "\"" + o + "\"" }.join(' ')} -o \"#{libpayload_path}\" #{App.config.ldlibs_pre(arch)} #{App.config.libs[App.config.armeabi_directory_name(arch)].join(' ')} #{App.config.ldlibs_post(arch)} -v"
     end
 
+    # copy over libc++_shared.so to the build directory for apk bundling
+    sh "cp \"#{App.config.ndk_path}/sources/cxx-stl/llvm-libc++/libs/#{App.config.armeabi_directory_name(arch)}/libc++_shared.so\" \"#{app_build_dir}/#{libs_abi_subpath}/libc++_shared.so\""
+    libpayload_subpaths << "#{libs_abi_subpath}/libc++_shared.so"
+
     # Copy the gdb server.
     gdbserver_subpath = "#{libs_abi_subpath}/gdbserver"
     gdbserver_subpaths << gdbserver_subpath
