@@ -300,7 +300,7 @@ module Motion; module Project
         when 'arm'
           "-marm -target armv7-none-linux-androideabi#{api_version_ndk} "
         when 'arm64'
-          "-marm -target arm64-v8a-linux-androideabi-none#{api_version_ndk}"
+          "-marm -target arm64-v8a-linux-androideabi#{api_version_ndk}"
         when 'x86'
           "-target i686-none-linux-android#{api_version_ndk} "
         else
