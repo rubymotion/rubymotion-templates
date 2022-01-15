@@ -314,7 +314,7 @@ module Motion; module Project
         if Util::Version.new(xcode_version[0]) < Util::Version.new('10.0')
           ' 6'
         else
-          ' 8'
+          ' 12'
         end
       end
     end

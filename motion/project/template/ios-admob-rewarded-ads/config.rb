@@ -293,7 +293,7 @@ module Motion; module Project
         if Util::Version.new(xcode_version[0]) < Util::Version.new('7.0')
           ' 6'
         else
-          ' 6s'
+          ' 12'
         end
       end
     end
