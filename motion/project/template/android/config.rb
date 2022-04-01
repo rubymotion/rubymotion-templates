@@ -182,7 +182,7 @@ module Motion; module Project
 
     def validate
       if !sdk_path or !File.exist?("#{sdk_path}/platforms")
-        App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup' to install the latest SDK version."
+        App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup-legacy' to install the latest SDK version."
       end
 
       if !ndk_path or !File.exist?("#{ndk_path}/platforms")
@@ -326,18 +326,7 @@ module Motion; module Project
     end
 
     def api_version_ndk
-      # NDK does not provide headers for versions of Android with no native
-      # API changes (ex. 10 and 11 are the same as 9).
-      case api_version
-        when '10', '11'
-          '9'
-        when '20'
-          '19'
-        when '25', '26', '27', '28'
-          '24'
-        else
-          api_version
-      end
+      '30'
     end
 
     def cflags(arch)
