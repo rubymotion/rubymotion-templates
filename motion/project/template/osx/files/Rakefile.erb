@@ -13,6 +13,7 @@ end
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = '<%= name %>'
-  app.deployment_target = '10.14'
+  app.deployment_target = '11.0'
   app.info_plist['CFBundleIconName'] = 'AppIcon'
+  app.archs["MacOSX"] = ["x86_64"]
 end
