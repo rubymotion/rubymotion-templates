@@ -609,8 +609,11 @@ EOS
 
   dex_files = Dir.glob(File.join(app_build_dir, '*.dex')).sort
 
-  # Generate the APK file.
-  archive = App.config.apk_path
+  if App.config.development?
+    archive = App.config.apk_path
+  else
+    archive = App.config.aab_path
+  end
   if !File.exist?(archive) \
       or dex_files.any? { |f| File.mtime(f) > File.mtime(archive) } \
       or File.mtime(android_manifest) > File.mtime(archive) \
@@ -619,28 +622,53 @@ EOS
       or resources_dirs.any? { |x| File.mtime(x) > File.mtime(archive) } \
       or native_libs.any? { |x| File.mtime("#{app_build_dir}/#{x}") > File.mtime(archive) }
     App.info 'Create', archive
-    sh "\"#{App.config.build_tools_dir}/aapt\" package -f -M \"#{android_manifest}\" #{aapt_assets_flags} #{aapt_resources_flags} -I \"#{android_jar}\" -F \"#{archive}\" --auto-add-overlay  --max-res-version #{App.config.target_api_version} #{App.config.appt_flags}"
-    Dir.chdir(app_build_dir) do
-      [*dex_files.map { |f| File.basename(f) }, *libpayload_subpaths, *native_libs, *gdbserver_subpaths].each do |file|
-        line = "\"#{App.config.build_tools_dir}/aapt\" add -f \"#{File.basename(archive)}\" \"#{file}\""
-        line << " > /dev/null" unless Rake.application.options.trace
-        sh line
-      end
-    end
-
-    App.info 'Align', archive
-    sh "\"#{App.config.zipalign_path}\" -f 4 \"#{archive}\" \"#{archive}-aligned\""
-    sh "/bin/mv \"#{archive}-aligned\" \"#{archive}\""
-
-    App.info 'Sign', archive
     if App.config.development?
+      # Generate the APK file.
+      sh "\"#{App.config.build_tools_dir}/aapt\" package -f -M \"#{android_manifest}\" #{aapt_assets_flags} #{aapt_resources_flags} -I \"#{android_jar}\" -F \"#{archive}\" --auto-add-overlay  --max-res-version #{App.config.target_api_version} #{App.config.appt_flags}"
+      Dir.chdir(app_build_dir) do
+        [*dex_files.map { |f| File.basename(f) }, *libpayload_subpaths, *native_libs, *gdbserver_subpaths].each do |file|
+          line = "\"#{App.config.build_tools_dir}/aapt\" add -f \"#{File.basename(archive)}\" \"#{file}\""
+          line << " > /dev/null" unless Rake.application.options.trace
+          sh line
+        end
+      end
+
+      App.info 'Align', archive
+      sh "\"#{App.config.zipalign_path}\" -f 4 \"#{archive}\" \"#{archive}-aligned\""
+      sh "/bin/mv \"#{archive}-aligned\" \"#{archive}\""
+
+      App.info 'Sign', archive
       line = "\"#{App.config.build_tools_dir}/apksigner\" sign --ks-pass pass:android --ks \"#{keystore}\" --ks-key-alias androiddebugkey \"#{archive}\""
       line << " >& /dev/null" unless Rake.application.options.trace
       sh line
     else
-      sh "/usr/bin/jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore \"#{keystore}\" \"#{archive}\" \"#{App.config.release_keystore_alias}\""
-    end
+      FileUtils.rm(archive) if File.exist?(archive)
+      # Generate the AAB file.
+      sh "\"#{App.config.build_tools_dir}/aapt2\" compile --dir resources -o \"#{File.join(app_build_dir, 'obj', 'res.zip')}\""
+      sh "\"#{App.config.build_tools_dir}/aapt2\" link --proto-format -o \"#{File.join(app_build_dir, 'obj', 'linked.zip')}\" -I \"#{android_jar}\" --manifest \"#{android_manifest}\" --java src \"#{File.join(app_build_dir, 'obj', 'res.zip')}\" --auto-add-overlay"
+      Dir.chdir(File.join(app_build_dir, 'obj')) do
+        sh "/usr/bin/jar xf linked.zip resources.pb AndroidManifest.xml res"
+        mkdir_p "dex"
+        mkdir_p "manifest"
+        sh "/bin/cp AndroidManifest.xml manifest"
+        [*dex_files.map { |f| File.basename(f) }].each do |file|
+          line = "/bin/cp \"../#{file}\" dex/"
+          line << " > /dev/null" unless Rake.application.options.trace
+          sh line
+        end
+        [*libpayload_subpaths, *native_libs].each do |file|
+          mkdir_p File.dirname(file)
+          line = "/bin/cp -R \"../#{file}\" \"#{file}\""
+          line << " > /dev/null" unless Rake.application.options.trace
+          sh line
+        end
+        sh "/usr/bin/jar cMf base.zip manifest dex res lib resources.pb"
+      end
+      sh "/usr/local/bin/bundletool build-bundle --modules=\"#{File.join(app_build_dir, 'obj', 'base.zip')}\" --output=\"#{archive}\""
 
+      App.info 'Sign', archive
+      sh "/usr/bin/jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore \"#{keystore}\" \"#{archive}\" \"#{App.config.release_keystore_alias}\" -tsa http://sha256timestamp.ws.symantec.com/sha256/timestamp"
+    end
   end
 
   $bs_files = bs_files
