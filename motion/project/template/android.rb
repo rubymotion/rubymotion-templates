@@ -628,18 +628,19 @@ EOS
       end
     end
 
+    App.info 'Align', archive
+    sh "\"#{App.config.zipalign_path}\" -f 4 \"#{archive}\" \"#{archive}-aligned\""
+    sh "/bin/mv \"#{archive}-aligned\" \"#{archive}\""
+
     App.info 'Sign', archive
     if App.config.development?
-      line = "/usr/bin/jarsigner -digestalg SHA1 -storepass android -keystore \"#{keystore}\" \"#{archive}\" androiddebugkey"
+      line = "\"#{App.config.build_tools_dir}/apksigner\" sign --ks-pass pass:android --ks \"#{keystore}\" --ks-key-alias androiddebugkey \"#{archive}\""
       line << " >& /dev/null" unless Rake.application.options.trace
       sh line
     else
       sh "/usr/bin/jarsigner -sigalg SHA1withRSA -digestalg SHA1 -keystore \"#{keystore}\" \"#{archive}\" \"#{App.config.release_keystore_alias}\""
     end
 
-    App.info 'Align', archive
-    sh "\"#{App.config.zipalign_path}\" -f 4 \"#{archive}\" \"#{archive}-aligned\""
-    sh "/bin/mv \"#{archive}-aligned\" \"#{archive}\""
   end
 
   $bs_files = bs_files
