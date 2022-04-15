@@ -264,6 +264,10 @@ module Motion; module Project
       @build_tools_version ||= Motion::Util::Version.new(build_tools_dir.match(/(\d)+\.(\d)+\.(\d)+/))
     end
 
+    def aab_path
+      File.join(versionized_build_dir, name + '.aab')
+    end
+
     def apk_path
       File.join(versionized_build_dir, name + '.apk')
     end
