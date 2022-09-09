@@ -669,8 +669,8 @@ S
       includes = ['-I.'] + headers.map { |header| "-I'#{File.dirname(header)}'" }.uniq
       exceptions = exceptions.map { |x| "\"#{x}\"" }.join(' ')
       c_flags = "#{c_flags} -isysroot '#{sdk_path}' #{bridgesupport_cflags} #{includes.join(' ')}"
-      cmd = ("RUBYOPT='' '#{File.join(bindir, 'gen_bridge_metadata')}' #{bridgesupport_flags} --cflags \"#{c_flags}\" --headers \"#{headers_file.path}\" -o '#{bs_file}' #{ "-e #{exceptions}" if exceptions.length != 0}")
-      App.info "gen_bridge_metadata", cmd
+      cmd = ("RUBYOPT='' GEM_PATH='' GEM_HOME='' arch -arch x86_64 /usr/bin/ruby '#{File.join(bindir, 'gen_bridge_metadata')}' #{bridgesupport_flags} --cflags \"#{c_flags}\" --headers \"#{headers_file.path}\" -o '#{bs_file}' #{ "-e #{exceptions}" if exceptions.length != 0}")
+      App.info "gen_bridge_metadata (#{__dir__})", cmd
       if defined?(Bundler)
         Bundler.respond_to?(:with_unbundled_env) ? Bundler.with_unbundled_env { sh(cmd) } : Bundler.with_original_env { sh(cmd) }
       else
@@ -755,15 +755,19 @@ S
       @vendor_projects.delete_if { |x| x.path == path }
     end
 
+    def xcode_app
+      `xcode-select -p`.strip.sub('/Contents/Developer', '')
+    end
+
     def delete_osx_symlink_if_exists
-      if File.exists? "/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
+      if File.exists? "#{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
         fork do
           begin
-            `rm -rf /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain`
+            `rm -rf #{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain`
           rescue
             puts "RubyMotion attempted to delete the following directory, but wasn't able to."
             puts "Please run the following command manually: "
-            puts 'rm -rf /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain'
+            puts 'rm -rf #{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain'
             puts 'You may need to run the command above with `sudo`.'
             raise
           end
