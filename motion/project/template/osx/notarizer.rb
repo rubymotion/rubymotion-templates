@@ -132,7 +132,7 @@ module Motion
       # Currently not in use
       def create_entitlements_file
         App.info 'Creating entitlements.xml file for', app_bundle
-        cmd = "codesign -d --entitlements - '#{app_bundle}' > '#{entitlements_file}'"
+        cmd = "codesign -d --xml --entitlements - '#{app_bundle}' > '#{entitlements_file}'"
         system cmd
       end
 
