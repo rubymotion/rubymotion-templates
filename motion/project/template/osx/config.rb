@@ -147,12 +147,28 @@ module Motion; module Project
     end
 
     def generic_info_plist
+      platform = "MacOSX"
       super.merge({
         'NSHumanReadableCopyright' => copyright,
         'NSPrincipalClass' => 'NSApplication',
         'CFBundleIconFile' => (icon or ''),
         'LSMinimumSystemVersion' => deployment_target,
-        'LSApplicationCategoryType' => (@category.start_with?('public.app-category') ? @category : 'public.app-category.' + @category)
+        'LSApplicationCategoryType' => (@category.start_with?('public.app-category') ? @category : 'public.app-category.' + @category),
+        'DTXcode' => begin
+          vers = xcode_version[0].gsub(/\./, '')
+          if vers.length == 2
+            '0' + vers + '0'
+          else
+            '0' + vers
+          end
+        end,
+        'DTXcodeBuild' => xcode_version[1],
+        'DTSDKName' => "#{platform.downcase}#{sdk_version}",
+        'DTSDKBuild' => sdk_build_version(platform),
+        'DTPlatformName' => platform.downcase,
+        'DTCompiler' => 'com.apple.compilers.llvm.clang.1_0',
+        'DTPlatformVersion' => sdk_version,
+        'DTPlatformBuild' => sdk_build_version(platform)
       })
     end
 
