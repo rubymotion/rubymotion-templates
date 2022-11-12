@@ -107,7 +107,7 @@ module Motion; module Project
       super
       @main_activity = 'MainActivity'
       @sub_activities = []
-      @archs = ['armv7']
+      @archs = ['arm64-v8a', 'x86']
       @assets_dirs = [File.join(project_dir, 'assets')]
       @vendored_projects = []
       @permissions = []
