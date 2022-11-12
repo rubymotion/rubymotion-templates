@@ -303,9 +303,9 @@ module Motion; module Project
     def toolchain_flags(arch)
       case common_arch(arch)
         when 'arm'
-          "-marm -target armv7-none-linux-androideabi#{api_version_ndk} "
+          "-target armv7-none-linux-androideabi#{api_version_ndk} "
         when 'arm64'
-          "-marm -target arm64-v8a-linux-androideabi#{api_version_ndk}"
+          "-target arm64-v8a-linux-androideabi#{api_version_ndk}"
         when 'x86'
           "-target i686-none-linux-android#{api_version_ndk} "
         else
@@ -320,7 +320,7 @@ module Motion; module Project
           if arch == 'armv5te'
             archflags << "-march=armv5te "
           elsif arch == 'armv7'
-            archflags << "-march=armv7a -mfpu=vfpv3-d16 "
+            archflags << "-march=armv7a "
           end
         when 'x86'
           # Nothing.
