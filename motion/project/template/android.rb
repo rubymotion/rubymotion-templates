@@ -582,7 +582,8 @@ EOS
     main_dex_list_path = File.join(app_build_dir, 'main-dex-list.txt')
     File.open(main_dex_list_path, 'w') { |io| io.write(main_dex_list) }
     App.info 'Create', 'dex files'
-    sh "\"#{App.config.build_tools_dir}/dx\" -JXmx2048m --dex --no-strict --multi-dex --main-dex-list \"#{main_dex_list_path}\" --output \"#{app_build_dir}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+    dx_binary_location = App.config.sdk_path + "/build-tools/30.0.0" + "/dx"
+    sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --multi-dex --main-dex-list \"#{main_dex_list_path}\" --output \"#{app_build_dir}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
   else
     dex_classes = File.join(app_build_dir, 'classes.dex')
     if !File.exist?(dex_classes) \
@@ -590,7 +591,8 @@ EOS
         or classes_changed \
         or vendored_jars.any? { |x| File.mtime(x) > File.mtime(dex_classes) }
       App.info 'Create', dex_classes
-      sh "\"#{App.config.build_tools_dir}/dx\" -JXmx2048m --dex --no-strict --incremental --output \"#{dex_classes}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+      dx_binary_location = App.config.sdk_path + "/build-tools/30.0.0" + "/dx"
+      sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --incremental --output \"#{dex_classes}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
     end
   end
 
@@ -854,7 +856,7 @@ namespace 'emulator' do
   end
 
   task :build do
-    App.config.archs = ['x86'] # Build x86 binary only for emulator
+    App.config.archs = ['x86', 'arm64-v8a'] # Build x86 and arm binary for emulators (arm added for M1/M2 macs)
     Rake::Task["build"].invoke
   end
 end
