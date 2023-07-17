@@ -64,14 +64,65 @@ namespace :build do
     end
   end
 
+  def check_brew_dependencies!
+    check_brew!
+    check_libimobiledevice!
+    check_openssl!
+  end
+
+  def check_brew!
+    if `which brew`.strip.empty?
+      raise <<~S
+            * ERROR: RubyMotion requires dependencies brew dependencies.
+
+              Install brew from http://brew.sh
+
+              Then run:
+
+                brew install libimobiledevice
+                brew install openssl@3
+
+              and try again.
+            S
+    end
+  end
+
+  def check_libimobiledevice!
+    if !`brew list libimobiledevice`.include?("1.3.0_1")
+      raise <<~S
+            * ERROR: libimobiledevice not found.
+              Please run
+
+                 brew install libimobiledevice
+
+              and try again.
+            S
+    end
+  end
+
+  def check_openssl!
+    if !`brew list openssl@3`.include?("3.1.1_1")
+      raise <<~S
+            * ERROR: libimobiledevice not found.
+              Please run
+
+                 brew install openssl@3
+
+              and try again.
+            S
+    end
+  end
+
   desc "Build the simulator version"
   task :simulator => 'build:icons' do
+    check_brew_dependencies!
     pre_build_actions('iPhoneSimulator')
     App.build('iPhoneSimulator')
   end
 
   desc "Build the device version"
   task :device => 'build:icons' do
+    check_brew_dependencies!
     pre_build_actions('iPhoneOS')
     App.build('iPhoneOS')
     App.codesign('iPhoneOS')
