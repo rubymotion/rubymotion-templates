@@ -61,6 +61,7 @@ module Motion
       text       = opts[:text]
       properties = opts[:properties]
       topic_id   = opts[:topic_id]
+      topic_name = opts[:topic_name]
 
       if text.is_a? Enumerable
         text = text.map { |i| to_s_dwim i }.join "\n"
@@ -88,7 +89,7 @@ module Motion
       title_string = "#{asterisk} #{title}\n"
       properties_string = __org_properties_string__ properties, leading_spaces
       final_string = title_string + properties_string + text
-      write final_string, topic_id
+      write final_string, topic_id, topic_name
     end
 
     def self.format_src opts
@@ -120,14 +121,25 @@ module Motion
       S
     end
 
-    def self.write s, topic_id = nil
+    def self.write s, topic_id = nil, topic_name = nil
       @lock.synchronize do
         @log_id += 1
         topic_id ||= @log_id
-        temp_file = File.join @temp_directory, "log-#{topic_id.to_s.rjust(3, padstr='0')}-#{@log_id.to_s.rjust(3, padstr='0')}"
+        log_number_s = "#{topic_id.to_s.rjust(3, padstr='0')}-#{@log_id.to_s.rjust(3, padstr='0')}"
+        temp_path = "log-#{log_number_s}"
+        temp_file = File.join @temp_directory, temp_path
         File.write(temp_file, '')
         File.open(temp_file, 'a') do |f|
           f.write s
+        end
+
+        if topic_name
+          temp_path = "log-#{log_number_s}-#{topic_name}"
+          temp_file = File.join @output_directory, temp_path
+          File.write(temp_file, '')
+          File.open(temp_file, 'a') do |f|
+            f.write s
+          end
         end
       end
     end
