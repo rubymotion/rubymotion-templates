@@ -667,7 +667,7 @@ EOS
         end
         sh "/usr/bin/jar cMf base.zip manifest dex res lib assets resources.pb"
       end
-      sh "/usr/local/bin/bundletool build-bundle --modules=\"#{File.join(app_build_dir, 'obj', 'base.zip')}\" --output=\"#{archive}\""
+      sh "bundletool build-bundle --modules=\"#{File.join(app_build_dir, 'obj', 'base.zip')}\" --output=\"#{archive}\""
 
       App.info 'Sign', archive
       sh "/usr/bin/jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore \"#{keystore}\" \"#{archive}\" \"#{App.config.release_keystore_alias}\" -tsa http://sha256timestamp.ws.symantec.com/sha256/timestamp"
