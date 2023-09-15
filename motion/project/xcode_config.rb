@@ -756,7 +756,7 @@ S
     end
 
     def delete_osx_symlink_if_exists
-      if File.exists? "/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
+      if File.exist? "/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
         fork do
           begin
             `rm -rf /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain`
