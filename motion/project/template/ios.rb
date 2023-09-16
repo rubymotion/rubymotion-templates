@@ -231,8 +231,8 @@ END
   at_exit { system("stty echo") } if $stdout.tty? # Just in case the simulator launcher crashes and leaves the terminal without echo.
   Signal.trap(:INT) {} if ENV['debug']
   repl_launcher.launch
-  App.config.print_crash_message if $?.exitstatus != 0 && !App.config.spec_mode
-  exit($?.exitstatus)
+  App.config.print_crash_message if $?.exitstatus.to_i != 0 && !App.config.spec_mode
+  exit($?.exitstatus.to_i)
 end
 
 desc "Create an .ipa archive"

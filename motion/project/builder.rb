@@ -197,7 +197,7 @@ module Motion; module Project
           archs.each do |arch|
             # Locate arch kernel.
             kernel = File.join(datadir, platform, "kernel-#{arch}.bc")
-            raise "Can't locate kernel file" unless File.exist?(kernel)
+            raise "Can't locate kernel file #{kernel}" unless File.exist?(kernel)
 
             # Assembly.
             compiler_exec_arch = case arch

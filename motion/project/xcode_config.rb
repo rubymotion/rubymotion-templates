@@ -755,15 +755,19 @@ S
       @vendor_projects.delete_if { |x| x.path == path }
     end
 
+    def xcode_app
+      `xcode-select -p`.strip.sub('/Contents/Developer', '')
+    end
+
     def delete_osx_symlink_if_exists
-      if File.exists? "/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
+      if File.exists? "#{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain"
         fork do
           begin
-            `rm -rf /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain`
+            `rm -rf #{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain`
           rescue
             puts "RubyMotion attempted to delete the following directory, but wasn't able to."
             puts "Please run the following command manually: "
-            puts 'rm -rf /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.13.xctoolchain'
+            puts 'rm -rf #{xcode_app}/Contents/Developer/Toolchains/OSX10.13.xctoolchain'
             puts 'You may need to run the command above with `sudo`.'
             raise
           end
