@@ -124,6 +124,13 @@ task :notarize do
 end
 
 namespace :notarize do
+  desc "Build and notarize the project for release and wait for acceptance"
+  task :wait do
+    App.config_without_setup.build_mode = :release
+    notarizer = Motion::Project::Notarizer.new(App.config, 'MacOSX')
+    notarizer.notarize(true)
+  end
+
   desc "Staple the notarization ticket to your app"
   task :staple do
     App.config_without_setup.build_mode = :release
