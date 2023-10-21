@@ -124,8 +124,8 @@ module Motion
         end.call
       end
 
-      # The password for the specified developer_apple_id
-      # Use @keychain:<name> for keychain items
+      # The app password for the specified developer_apple_id.
+      # Can use @keychain:<name> for keychain items
       # or @env:<variable> for environment variables
       def developer_app_password
         @developer_app_password ||= proc do
@@ -142,6 +142,21 @@ module Motion
           raise 'Please set app.developer_team_id to your developer account Team ID in your Rakefile!' if rv.nil?
           rv
         end.call
+      end
+
+      def password_or_keychain_option
+        if developer_app_password =~ /@keychain:/
+          match = developer_app_password.match(/@keychain:(?<profile_name>.*)/)
+          return "--keychain-profile '#{match[:profile_name]}' " if match
+        end
+
+        if developer_app_password =~ /@env:/
+          match = developer_app_password.match(/@env:(?<variable>.*)/)
+          variable = match[:variable]
+          return "--password '#{ENV.fetch(variable, '')}' " if match
+        end
+
+        "--password '#{developer_app_password}' "
       end
 
       # This method creates an entitlements.xml file for the app bundle
@@ -304,7 +319,7 @@ S
       def cmd_history
         cmd  = 'xcrun notarytool history '
         cmd += "--apple-id '#{developer_apple_id}' "
-        cmd += "--password '#{developer_app_password}' "
+        cmd += password_or_keychain_option
         cmd += "--team-id '#{developer_team_id}' "
         cmd
       end
@@ -313,7 +328,7 @@ S
         cmd  = 'xcrun notarytool info '
         cmd += "#{uuid} "
         cmd += "--apple-id '#{developer_apple_id}' "
-        cmd += "--password '#{developer_app_password}' "
+        cmd += password_or_keychain_option
         cmd += "--team-id '#{developer_team_id}'"
         cmd
       end
@@ -321,7 +336,7 @@ S
       def cmd_notarization_submit(wait)
         cmd  = 'xcrun notarytool submit '
         cmd += "--apple-id '#{developer_apple_id}' "
-        cmd += "--password \"#{developer_app_password}\" "
+        cmd += password_or_keychain_option
         cmd += "--team-id '#{developer_team_id}' "
         cmd += "--wait " if wait
         cmd += "'#{release_zip}'"
