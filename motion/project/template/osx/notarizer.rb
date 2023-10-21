@@ -38,14 +38,14 @@ module Motion
       end
 
       # Submit the app bundle for notarization
-      def notarize
+      def notarize(wait = false)
         check_app_bundle_exist!
         create_entitlements_file
 
         codesign
         check_code_signature
         zip_app_file
-        submit_for_notarization
+        submit_for_notarization(wait)
       end
 
       # Staple the app bundle and re-zip it
@@ -61,25 +61,41 @@ module Motion
       def show_history
         clearscreen
 
-        # number and print the history lines
-        history.lines.each_with_index do |l, i|
-          if i>4 && i < (history.lines.count - 3)
-            l = "(#{sprintf("%02d", i-4)}) #{l}"
-          else
-            l = "     #{l}"
+        while true do
+          # number and print the history lines
+          item = 0
+          uuids = []
+
+          history.lines.each do |line|
+            if line =~ /createdDate:/
+              line = "(#{sprintf("%02d", item + 1)}) #{line}"
+              item += 1
+            else
+              uuids << line.match(/id: (?<uuid>.*)/)[:uuid] if line =~ /id:/
+              line = "     #{line}"
+            end
+
+            puts line
           end
-          puts l
+
+          # Let user select a line from the history
+          puts "\nEnter line to see details (x to exit)"
+          line_no = STDIN.gets.chomp
+          break if line_no.downcase == 'x'
+
+          line_no = line_no.to_i
+
+          if line_no < 1 || line_no > uuids.length
+            show_as_failed('Line number out of range')
+            puts ''
+            next
+          end
+
+          show_notarization_status uuids[line_no.to_i - 1]
+
+          puts 'Press <Enter> to continue'
+          STDIN.gets
         end
-
-        # Let user select a line from the history
-        puts "Enter line to see details (x to exit)"
-        lno = STDIN.gets
-        lno.chomp!
-        exit if lno.downcase=='x'
-
-        # Grep the uid of the item and show its details
-        uid = history.lines[lno.to_i + 4].match(/[a-zA-Z0-9]{8}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z0-9]{4}\-[a-zA-Z,0-9]{12}/)
-        show_notarization_status uid[0]
       end
 
       private
@@ -99,31 +115,31 @@ module Motion
         @release_zip ||= app_bundle.gsub(/\.app$/, '.zip')
       end
 
-      # The CFBundleIdentifier from the plist as specified in the Rakefile
-      def bundle_id
-        @bundle_id ||= proc do
-          rv = config.identifier
-          raise 'Please set app.info_plist[\'CFBundleIdentifier\'] in your Rakefile' if rv.nil?
+      # The Apple ID which is used for notarization
+      def developer_apple_id
+        @developer_apple_id ||= proc do
+          rv = config.developer_apple_id || config.developer_userid
+          raise 'Please set app.developer_apple_id to your Apple ID in your Rakefile!' if rv.nil?
           rv
         end.call
       end
 
-      # The username of your developer id which is used for notarization
-      def developer_userid
-        @developer_userid ||= proc do
-          rv = config.developer_userid
-          raise 'Please set app.developer_userid in your Rakefile' if rv.nil?
-          rv
-        end.call
-      end
-
-      # The password for the specified developer_userid
+      # The password for the specified developer_apple_id
       # Use @keychain:<name> for keychain items
       # or @env:<variable> for environment variables
       def developer_app_password
         @developer_app_password ||= proc do
           rv = config.developer_app_password
-          raise 'Please set app.developer_app_password in your Rakefile! Use @keychain:<name> for keychain items or @env:<variable> for environment variables. See xcrun altool for more help.' if rv.nil?
+          raise 'Please set app.developer_app_password in your Rakefile! Use @keychain:<name> for keychain items or @env:<variable> for environment variables. See xcrun notarytool for more help.' if rv.nil?
+          rv
+        end.call
+      end
+
+      # The Apple ID which is used for notarization
+      def developer_team_id
+        @developer_team_id ||= proc do
+          rv = config.developer_team_id
+          raise 'Please set app.developer_team_id to your developer account Team ID in your Rakefile!' if rv.nil?
           rv
         end.call
       end
@@ -221,19 +237,16 @@ module Motion
       end
 
       # Submit the zip file for notarization
-      def submit_for_notarization
-        App.info 'Submitting for notarization… ', release_zip
-        cmd  = 'xcrun altool --notarize-app '
-        cmd += "--primary-bundle-id \"#{bundle_id}\" "
-        cmd += "--username '#{developer_userid}' "
-        cmd += "--password \"#{developer_app_password}\" --file '#{release_zip}'"
-        sh cmd
+      def submit_for_notarization(wait = false)
+        App.info "Submitting #{'and waiting ' if wait}for notarization… ", release_zip
+        sh cmd_notarization_submit(wait)
+
         puts <<-S
-Remember to run
+
+After notarization was succesful, remember to run
 
     rake notarize:staple
 
-after notarization was succesful!
 To check notarization status run
 
     rake notarize:history
@@ -249,17 +262,11 @@ S
       end
 
       # Show the status of a notarization item
-      # with the given uid
-      def show_notarization_status(uid=nil)
-        cmd  = 'xcrun altool --notarization-info '
-        cmd += "#{uid} "
-        cmd += "--username '#{developer_userid}' "
-        cmd += "--password '#{developer_app_password}' "
-
-        clearscreen
-        puts `#{cmd}`
-        STDIN.gets
-        show_history
+      # with the given uuid
+      def show_notarization_status(uuid = nil)
+        puts ''
+        puts `#{cmd_notarization_status(uuid)}`
+        puts ''
       end
 
       # Staple the app bundle after successful notarization
@@ -291,13 +298,33 @@ S
       end
 
       def history
-        @history ||= `#{cmd_history}`
+        `#{cmd_history}`
       end
 
       def cmd_history
-        cmd  = 'xcrun altool --notarization-history 0 '
-        cmd += "--username '#{developer_userid}' "
+        cmd  = 'xcrun notarytool history '
+        cmd += "--apple-id '#{developer_apple_id}' "
         cmd += "--password '#{developer_app_password}' "
+        cmd += "--team-id '#{developer_team_id}' "
+        cmd
+      end
+
+      def cmd_notarization_status(uuid = nil)
+        cmd  = 'xcrun notarytool info '
+        cmd += "#{uuid} "
+        cmd += "--apple-id '#{developer_apple_id}' "
+        cmd += "--password '#{developer_app_password}' "
+        cmd += "--team-id '#{developer_team_id}'"
+        cmd
+      end
+
+      def cmd_notarization_submit(wait)
+        cmd  = 'xcrun notarytool submit '
+        cmd += "--apple-id '#{developer_apple_id}' "
+        cmd += "--password \"#{developer_app_password}\" "
+        cmd += "--team-id '#{developer_team_id}' "
+        cmd += "--wait " if wait
+        cmd += "'#{release_zip}'"
         cmd
       end
 
