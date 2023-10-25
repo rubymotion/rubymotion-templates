@@ -50,6 +50,12 @@ module Motion; module Project
       end
     end
 
+    def parse_xcode_version
+      `xcodebuild -version`.each_line.first.strip.gsub('Xcode ', '')
+    rescue Exception => e
+      raise e, "Try running sudo xcode-select --reset."
+    end
+
     def build(config, platform, opts)
       check_mojave_swift_dylibs
 
@@ -526,7 +532,13 @@ EOS
                      title: "Object Files to Link.",
                      text: BuildLog.format_src(type: "", text: File.read(objs_file.path))
 
-        linker_command = "#{cxx} -o \"#{main_exec}\" #{entitlements} -filelist \"#{objs_file.path}\" #{config.ldflags(platform)} -L\"#{File.join(datadir, platform)}\" -lrubymotion-static -lobjc -licucore #{linker_option} #{framework_search_paths} #{frameworks} #{weak_frameworks} #{configuration_libs.join(' ')} #{vendor_libs}"
+        xcode_build_version = parse_xcode_version.split(".").first.to_i
+
+        if xcode_build_version == 15
+          linker_command = "#{cxx} -ld_classic -Wl,-undefined -Wl,dynamic_lookup -o \"#{main_exec}\" #{entitlements} -filelist \"#{objs_file.path}\" #{config.ldflags(platform)} -L\"#{File.join(datadir, platform)}\" -lrubymotion-static -lobjc -licucore #{linker_option} #{framework_search_paths} #{frameworks} #{weak_frameworks} #{configuration_libs.join(' ')} #{vendor_libs}"
+        else
+          linker_command = "#{cxx} -o \"#{main_exec}\" #{entitlements} -filelist \"#{objs_file.path}\" #{config.ldflags(platform)} -L\"#{File.join(datadir, platform)}\" -lrubymotion-static -lobjc -licucore #{linker_option} #{framework_search_paths} #{frameworks} #{weak_frameworks} #{configuration_libs.join(' ')} #{vendor_libs}"
+        end
 
         topic_id = BuildLog.topic_id!
         BuildLog.org topic_id: topic_id,
