@@ -563,7 +563,7 @@ EOS
   end
   compile_java_file = Proc.new do |classes_dir, java_path|
     App.info 'Create', java_path if Rake.application.options.trace
-    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.6 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.6 \"#{java_path}\""
     classes_changed = true
   end
   parallel = Motion::Project::ParallelBuilder.new(classes_dir, compile_java_file)
