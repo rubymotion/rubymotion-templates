@@ -368,7 +368,11 @@ EOS
 
     # copy over libc++_shared.so to the build directory for apk bundling
     sh "cp \"#{App.config.ndk_path}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so\" \"#{app_build_dir}/#{libs_abi_subpath}/libc++_shared.so\""
-    sh "cp -R ./assets/ #{File.join app_build_dir, "obj", "assets/"}"
+    App.config.assets_dirs.each do |assets_dir|
+      if File.exist?(assets_dir)
+       sh "cp -R #{assets_dir}/ #{File.join app_build_dir, "obj", "assets/"}"
+      end
+    end
     libpayload_subpaths << "#{libs_abi_subpath}/libc++_shared.so"
 
     # Copy the gdb server.
