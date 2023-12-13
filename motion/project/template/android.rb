@@ -204,7 +204,12 @@ task :build do
     end
 
     r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').sort.map { |c| "'#{c}'" }
-    sh "RUBYOPT='' \"#{App.config.bin_exec('android/gen_bridge_metadata')}\" #{r_classes.join(' ')} -o \"#{r_bs}\" "
+    cmd = "RUBYOPT='' \"#{App.config.bin_exec('android/gen_bridge_metadata')}\" #{r_classes.join(' ')} -o \"#{r_bs}\" "
+    if defined?(Bundler)
+      Bundler.respond_to?(:with_unbundled_env) ? Bundler.with_unbundled_env { sh(cmd) } : Bundler.with_original_env { sh(cmd) }
+    else
+      sh(cmd)
+    end
 
     classes_changed = true
   end
