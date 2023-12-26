@@ -187,14 +187,6 @@ module Motion; module Project
           :watch => '6.1',
           :clang => 'Apple clang version 11.0.0 (clang-1100.0.33.12)'
         },
-        '11.3' => {
-          :llvm  => 900,
-          :osx   => '10.15',
-          :ios   => '13.2',
-          :tv    => '13.2',
-          :watch => '6.1',
-          :clang => 'Apple clang version 11.0.0 (clang-1100.0.33.12)'
-        },
         '11.3.1' => {
           :llvm  => 900,
           :osx   => '10.15',
@@ -211,7 +203,23 @@ module Motion; module Project
           :watch => '6.2',
           :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
         },
+        '11.4.1' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.4',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
         '11.5' => {
+          :llvm  => 900,
+          :osx   => '10.15',
+          :ios   => '13.5',
+          :tv    => '13.4',
+          :watch => '6.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '11.5.1' => {
           :llvm  => 900,
           :osx   => '10.15',
           :ios   => '13.5',
@@ -237,7 +245,15 @@ module Motion; module Project
         },
         '12.0' => {
           :llvm  => 900,
-          :osx   => '11.0',
+          :osx   => '10.15',
+          :ios   => '14.0',
+          :tv    => '14.0',
+          :watch => '7.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.0.1' => {
+          :llvm  => 900,
+          :osx   => '10.15',
           :ios   => '14.0',
           :tv    => '14.0',
           :watch => '7.0',
@@ -245,15 +261,15 @@ module Motion; module Project
         },
         '12.1' => {
           :llvm  => 900,
-          :osx   => '11.0',
+          :osx   => '10.15',
           :ios   => '14.1',
-          :tv    => '14.0',
+          :tv    => '14.1',
           :watch => '7.0',
           :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
         },
         '12.1.1' => {
           :llvm  => 900,
-          :osx   => '11.0',
+          :osx   => '10.15',
           :ios   => '14.2',
           :tv    => '14.2',
           :watch => '7.1',
@@ -266,7 +282,143 @@ module Motion; module Project
           :tv    => '14.2',
           :watch => '7.1',
           :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
-        }
+        },
+        '12.3' => {
+          :llvm  => 900,
+          :osx   => '11.1',
+          :ios   => '14.3',
+          :tv    => '14.3',
+          :watch => '7.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.4' => {
+          :llvm  => 900,
+          :osx   => '11.1',
+          :ios   => '14.4',
+          :tv    => '14.4',
+          :watch => '7.2',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.5' => {
+          :llvm  => 900,
+          :osx   => '11.3',
+          :ios   => '14.5',
+          :tv    => '14.5',
+          :watch => '7.4',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '12.5.1' => {
+          :llvm  => 900,
+          :osx   => '11.3',
+          :ios   => '14.5',
+          :tv    => '14.5',
+          :watch => '7.4',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '13.0' => {
+          :llvm  => 900,
+          :osx   => '12.0',
+          :ios   => '15.0',
+          :tv    => '15.0',
+          :watch => '8.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '13.1' => {
+          :llvm  => 900,
+          :osx   => '12.0',
+          :ios   => '15.0',
+          :tv    => '15.0',
+          :watch => '8.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '13.2.1' => {
+          :llvm  => 900,
+          :osx   => '12.1',
+          :ios   => '15.2',
+          :tv    => '15.2',
+          :watch => '8.0',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '13.3' => {
+          :llvm  => 900,
+          :osx   => '12.3',
+          :ios   => '15.4',
+          :tv    => '15.4',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '13.4' => {
+          :llvm  => 900,
+          :osx   => '12.3',
+          :ios   => '15.5',
+          :tv    => '15.5',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '14.0' => {
+          :llvm  => 900,
+          :osx   => '12.3',
+          :ios   => '16.0',
+          :tv    => '16.0',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '14.1' => {
+          :llvm  => 900,
+          :osx   => '13.0',
+          :ios   => '16.1',
+          :tv    => '16.1',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '14.2' => {
+          :llvm  => 900,
+          :osx   => '13.1',
+          :ios   => '16.2',
+          :tv    => '16.2',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '14.3' => {
+          :llvm  => 900,
+          :osx   => '13.3',
+          :ios   => '16.4',
+          :tv    => '16.4',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '14.3.1' => {
+          :llvm  => 900,
+          :osx   => '13.3',
+          :ios   => '16.4',
+          :tv    => '16.4',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '15.0' => {
+          :llvm  => 900,
+          :osx   => '14.0',
+          :ios   => '17.0',
+          :tv    => '17.0',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '15.0.1' => {
+          :llvm  => 900,
+          :osx   => '14.0',
+          :ios   => '17.0.1',
+          :tv    => '17.0.1',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '15.1' => {
+          :llvm  => 900,
+          :osx   => '14.0',
+          :ios   => '17.2',
+          :tv    => '17.2',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
       }
     end
 
