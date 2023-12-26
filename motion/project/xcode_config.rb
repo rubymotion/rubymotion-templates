@@ -56,6 +56,63 @@ module Motion; module Project
       @vendor_projects = []
       @version = '1.0'
       @swift_version = `xcrun swift -version`.strip.match(/Apple Swift version ([\d\.]+)/)[1]
+      XcodeConfig.check_for_sdk_dir_with_explicit_version(xcode_developer_dir: xcode_dir, platform_names: self.platforms)
+    end
+
+    def XcodeConfig.check_for_sdk_dir_with_explicit_version(xcode_developer_dir:, platform_names:)
+      platform_names.each do |platform|
+        sdk_version = get_sdk_version(xcode_developer_dir: xcode_developer_dir,
+                                      platform_name: platform)
+        without_version_dir = sdk_dir_without_version(xcode_developer_dir: xcode_developer_dir,
+                                                      platform_name: platform)
+        with_version_dir = sdk_dir_with_version(xcode_developer_dir: xcode_developer_dir,
+                                                platform_name: platform)
+        if !Dir.exist?(with_version_dir) && Dir.exist?(without_version_dir)
+          App.fail <<~S
+                   * ERROR: Explicit SDK directory required.
+                   Please run the following command to create an explicitly named SDK directory (you may need to use sudo):
+
+                   ln -s #{without_version_dir} #{with_version_dir}
+
+                   S
+        end
+      end
+    end
+
+    def XcodeConfig.sdk_dir_without_version(xcode_developer_dir:, platform_name:)
+      xcode_developer_dir = File.expand_path(xcode_developer_dir)
+      sdk_dir = File.join(xcode_developer_dir, "Platforms/#{platform_name}.platform/Developer/SDKs/#{platform_name}.sdk")
+    end
+
+    def XcodeConfig.sdk_dir_with_version(xcode_developer_dir:, platform_name:)
+      xcode_developer_dir = File.expand_path(xcode_developer_dir)
+      version = get_sdk_version(xcode_developer_dir: xcode_developer_dir, platform_name: platform_name)
+      sdk_dir = File.join(xcode_developer_dir, "Platforms/#{platform_name}.platform/Developer/SDKs/#{platform_name}#{version}.sdk")
+    end
+
+    def XcodeConfig.sdk_settings_path(xcode_developer_dir:, platform_name:)
+      xcode_developer_dir = File.expand_path(xcode_developer_dir)
+      platform_dir = File.join(xcode_developer_dir, "Platforms/#{platform_name}.platform")
+      sdk_settings_path = File.join(platform_dir, "Developer", "SDKs", "#{platform_name}.sdk", "SDKSettings.plist")
+      sdk_settings_path
+    end
+
+    def XcodeConfig.get_sdk_version(xcode_developer_dir:, platform_name:)
+      xcode_developer_dir = File.expand_path(xcode_developer_dir)
+      platform_dir = File.join(xcode_developer_dir, "Platforms/#{platform_name}.platform")
+      sdk_settings_path = File.join(platform_dir, "Developer", "SDKs", "#{platform_name}.sdk", "SDKSettings.plist")
+      if !File.exist?(sdk_settings_path)
+        puts <<~S
+              * ERROR: SDKSettings.plist not found.
+              Looking for SDKSettings.plist at #{sdk_settings_path}
+
+              XCode may be incorrectly installed. Please try reinstalling XCode.
+              S
+        exit 1
+      end
+      plist_buddy_cmd = "/usr/libexec/PlistBuddy -c \"Print :Version\" #{sdk_settings_path}"
+      sdk_version = `#{plist_buddy_cmd}`.strip
+      sdk_version
     end
 
     def xcode_dir=(xcode_dir)
@@ -326,6 +383,24 @@ S
 
     def platform_dir(platform)
       File.join(platforms_dir, platform + '.platform')
+    end
+
+    def XcodeConfig.derived_sdk_version(xcode_developer_dir:, platform_name:)
+      xcode_developer_dir = File.expand_path(xcode_developer_dir)
+      platform_dir = File.join(xcode_developer_dir, "Platforms/#{platform_name}.platform")
+      sdk_settings_path = File.join(platform_dir, "Developer", "SDKs", "#{platform_name}.sdk", "SDKSettings.plist")
+      if !File.exist?(sdk_settings_path)
+        puts <<~S
+              * ERROR: SDKSettings.plist not found.
+              Looking for SDKSettings.plist at #{sdk_settings_path}
+
+              XCode may be incorrectly installed. Please try reinstalling XCode.
+              S
+        exit 1
+      end
+      plist_buddy_cmd = "/usr/libexec/PlistBuddy -c \"Print :Version\" #{sdk_settings_path}"
+      sdk_version = `#{plist_buddy_cmd}`.strip
+      sdk_version
     end
 
     def sdk_version
