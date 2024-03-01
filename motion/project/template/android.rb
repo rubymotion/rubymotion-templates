@@ -145,8 +145,13 @@ task :build do
   # Sub-activities.
   (App.config.sub_activities.uniq - [App.config.main_activity]).each do |activity|
     App.config.manifest.child('application').add_child('activity') do |sub_activity|
-      sub_activity['android:name'] = "#{activity}"
-      sub_activity['android:label'] = "#{activity}"
+      if activity.is_a? Hash
+        sub_activity['android:name'] = "#{activity[:name]}"
+        sub_activity['android:label'] = "#{activity[:label] || activity[:name]}"
+      else
+        sub_activity['android:name'] = "#{activity}"
+        sub_activity['android:label'] = "#{activity}"
+      end
       sub_activity['android:parentActivityName'] = -> { "#{App.config.main_activity}" }
 
       sub_activity.add_child('meta-data') do |meta|

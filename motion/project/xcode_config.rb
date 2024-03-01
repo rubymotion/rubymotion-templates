@@ -413,7 +413,15 @@ module Motion; module Project
         },
         '15.1' => {
           :llvm  => 900,
-          :osx   => '14.0',
+          :osx   => '14.2',
+          :ios   => '17.2',
+          :tv    => '17.2',
+          :watch => '8.5',
+          :clang => 'Apple clang version 11.0.3 (clang-1103.0.32.29)'
+        },
+        '15.2' => {
+          :llvm  => 900,
+          :osx   => '14.2',
           :ios   => '17.2',
           :tv    => '17.2',
           :watch => '8.5',
