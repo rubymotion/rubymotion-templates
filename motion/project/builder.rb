@@ -828,7 +828,7 @@ EOS
       else
         app_icon_and_launch_image_options = ''
         if config.respond_to?(:app_icons_asset_bundle) && bundle_name = config.app_icon_name_from_asset_bundle
-          app_icon_and_launch_image_options << " --app-icon '#{bundle_name}'"
+          app_icon_and_launch_image_options << " --app-icon '#{bundle_name}' --include-all-app-icons"
         end
         if config.respond_to?(:launch_images_asset_bundle) && bundle_name = config.launch_image_name_from_asset_bundle
           app_icon_and_launch_image_options << " --launch-image '#{bundle_name}'"
