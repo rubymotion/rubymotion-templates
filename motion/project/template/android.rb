@@ -205,7 +205,7 @@ task :build do
     mkdir_p classes_dir
 
     r_java.each do |java_path|
-      sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{classes_dir} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+      sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{classes_dir} -sourcepath \"#{java_dir}\" -target 1.8 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.8 \"#{java_path}\""
     end
 
     r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').sort.map { |c| "'#{c}'" }
@@ -371,15 +371,6 @@ EOS
     sh "cp -R ./assets/ #{File.join app_build_dir, "obj", "assets/"}"
     libpayload_subpaths << "#{libs_abi_subpath}/libc++_shared.so"
 
-    # Copy the gdb server.
-    gdbserver_subpath = "#{libs_abi_subpath}/gdbserver"
-    gdbserver_subpaths << gdbserver_subpath
-    gdbserver_path = "#{app_build_dir}/#{gdbserver_subpath}"
-    if !File.exist?(gdbserver_path)
-      App.info 'Create', gdbserver_path
-      sh "/usr/bin/install -p #{App.config.ndk_path}/prebuilt/android-#{App.config.common_arch(arch)}/gdbserver/gdbserver #{File.dirname(gdbserver_path)}"
-    end
-
     # Install native shared libraries.
     App.config.vendored_projects.map { |x| x[:native] }.compact.flatten.each do |native_lib_src|
       next unless native_lib_src.include?(App.config.armeabi_directory_name(arch))
@@ -390,19 +381,6 @@ EOS
           or File.mtime(native_lib_src) > File.mtime(native_lib_path)
         App.info 'Create', native_lib_path
         sh "/usr/bin/install -p #{native_lib_src} #{File.dirname(native_lib_path)}"
-      end
-    end
-
-    # Create the gdb config file.
-    gdbconfig_path = "#{app_build_dir}/#{libs_abi_subpath}/gdb.setup"
-    if !File.exist?(gdbconfig_path)
-      App.info 'Create', gdbconfig_path
-      File.open(gdbconfig_path, 'w') do |io|
-        io.puts <<EOS
-set solib-search-path #{libs_abi_subpath}:obj/local/#{App.config.armeabi_directory_name(arch)}
-source "#{App.config.ndk_path}/prebuilt/common/gdb/common.setup"
-directory "#{App.config.ndk_path}/platforms/android-#{App.config.api_version_ndk}/arch-#{App.config.common_arch(arch)}/usr/include" jni "#{App.config.ndk_path}/sources/cxx-stl/system"
-EOS
       end
     end
   end
@@ -559,7 +537,7 @@ EOS
   end
   compile_java_file = Proc.new do |classes_dir, java_path|
     App.info 'Create', java_path if Rake.application.options.trace
-    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.8 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.8 \"#{java_path}\""
     classes_changed = true
   end
   parallel = Motion::Project::ParallelBuilder.new(classes_dir, compile_java_file)

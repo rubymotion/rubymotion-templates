@@ -186,16 +186,16 @@ module Motion; module Project
         App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup-legacy' to install the latest SDK version."
       end
 
-      if !ndk_path or !File.exist?("#{ndk_path}/platforms")
+      if !ndk_path or !File.exist?("#{ndk_path}/build/core/version.mk")
         App.fail "app.ndk_path should point to a valid Android NDK directory. Run 'motion android-setup' to install the latest NDK version."
       end
 
-      if api_version == nil or !File.exist?("#{sdk_path}//platforms/android-#{api_version}")
-        App.fail "The Android SDK installed on your system does not support " + (api_version == nil ? "any API level. Run 'motion android-setup' to install the latest API level." : "API level #{api_version}") + ". Run 'motion android-setup --api_version=#{api_version}' to install it."
+      if !File.read("#{ndk_path}/build/core/version.mk").include?("NDK_MAJOR := 26")
+        App.fail "app.ndk_path should point to a valid Android NDK directory. Run 'motion android-setup' to install the latest NDK version."
       end
 
-      if !File.exist?("#{ndk_path}/platforms/android-#{api_version_ndk}")
-        App.fail "The Android NDK installed on your system does not support API level #{api_version}. Run 'motion android-setup' to install a more recent NDK version."
+      if api_version == nil or !File.exist?("#{sdk_path}/platforms/android-#{api_version}")
+        App.fail "The Android SDK installed on your system does not support " + (api_version == nil ? "any API level. Run 'motion android-setup' to install the latest API level." : "API level #{api_version}") + ". Run 'motion android-setup --api_version=#{api_version}' to install it."
       end
 
       super
