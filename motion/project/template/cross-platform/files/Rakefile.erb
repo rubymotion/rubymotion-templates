@@ -1,0 +1,21 @@
+$:.unshift("/Library/RubyMotion/lib")
+$:.unshift("~/.rubymotion/rubymotion-templates")
+require "motion/project/template/cross-platform"
+
+require "bundler"
+Bundler.require
+
+Motion::Project::App.setup do |app|
+  app.name = "<%= name %>"
+
+  app.platform(:android) do
+    # Android-specific configuration
+    app.api_version = "30"
+    app.archs = ["armv7", "arm64-v8a"]
+  end
+
+  app.platform(:ios) do
+    # iOS-specific configuration
+    app.deployment_target = "10.0"
+  end
+end
