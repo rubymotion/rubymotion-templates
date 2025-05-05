@@ -536,7 +536,7 @@ EOS
   vendored_jars += [File.join(App.config.versioned_datadir, 'rubymotion.jar')]
   classes_dir = File.join(app_build_dir, 'classes')
   mkdir_p classes_dir
-  class_path = [classes_dir, "#{App.config.sdk_path}/tools/support/annotations.jar", *vendored_jars].map { |x| "\"#{x}\"" }.join(':')
+  class_path = [classes_dir, *vendored_jars].map { |x| "\"#{x}\"" }.join(':')
   java_paths = []
   Dir.glob(File.join(app_build_dir, 'java', '**', '*.java')).sort.each do |java_path|
     paths = java_path.split('/')
@@ -588,7 +588,7 @@ EOS
     File.open(main_dex_list_path, 'w') { |io| io.write(main_dex_list) }
     App.info 'Create', 'dex files'
     dx_binary_location = App.config.sdk_path + "/build-tools/30.0.0" + "/dx"
-    sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --multi-dex --main-dex-list \"#{main_dex_list_path}\" --output \"#{app_build_dir}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+    sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --multi-dex --main-dex-list \"#{main_dex_list_path}\" --output \"#{app_build_dir}\" \"#{classes_dir}\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
   else
     dex_classes = File.join(app_build_dir, 'classes.dex')
     if !File.exist?(dex_classes) \
@@ -597,7 +597,7 @@ EOS
         or vendored_jars.any? { |x| File.mtime(x) > File.mtime(dex_classes) }
       App.info 'Create', dex_classes
       dx_binary_location = App.config.sdk_path + "/build-tools/30.0.0" + "/dx"
-      sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --incremental --output \"#{dex_classes}\" \"#{classes_dir}\" \"#{App.config.sdk_path}/tools/support/annotations.jar\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+      sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --incremental --output \"#{dex_classes}\" \"#{classes_dir}\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
     end
   end
 
