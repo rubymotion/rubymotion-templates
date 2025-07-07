@@ -209,7 +209,12 @@ task :build do
     end
 
     r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').sort.map { |c| "'#{c}'" }
-    sh "RUBYOPT='' \"#{App.config.bin_exec('android/gen_bridge_metadata')}\" #{r_classes.join(' ')} -o \"#{r_bs}\" "
+    cmd = "RUBYOPT='' \"#{App.config.bin_exec('android/gen_bridge_metadata')}\" #{r_classes.join(' ')} -o \"#{r_bs}\" "
+    if defined?(Bundler)
+      Bundler.respond_to?(:with_unbundled_env) ? Bundler.with_unbundled_env { sh(cmd) } : Bundler.with_original_env { sh(cmd) }
+    else
+      sh(cmd)
+    end
 
     classes_changed = true
   end
@@ -368,7 +373,11 @@ EOS
 
     # copy over libc++_shared.so to the build directory for apk bundling
     sh "cp \"#{App.config.ndk_path}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so\" \"#{app_build_dir}/#{libs_abi_subpath}/libc++_shared.so\""
-    sh "cp -R ./assets/ #{File.join app_build_dir, "obj", "assets/"}"
+    App.config.assets_dirs.each do |assets_dir|
+      if File.exist?(assets_dir)
+       sh "cp -R #{assets_dir}/ #{File.join app_build_dir, "obj", "assets/"}"
+      end
+    end
     libpayload_subpaths << "#{libs_abi_subpath}/libc++_shared.so"
 
     # Copy the gdb server.
@@ -559,7 +568,7 @@ EOS
   end
   compile_java_file = Proc.new do |classes_dir, java_path|
     App.info 'Create', java_path if Rake.application.options.trace
-    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.6 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.6 \"#{java_path}\""
     classes_changed = true
   end
   parallel = Motion::Project::ParallelBuilder.new(classes_dir, compile_java_file)
