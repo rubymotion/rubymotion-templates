@@ -153,7 +153,30 @@ module Motion; module Project
       objs_build_dir = File.join(build_dir, 'objs')
       FileUtils.mkdir_p(objs_build_dir)
       any_obj_file_built = false
+
+      if Motion::Version >= '10.0'
+        File.write("./app/array_flatten_patch.rb", <<-S)
+# Auto generated file by RubyMotion via #{__FILE__}:#{__LINE__}
+# iOS 18.3 introduced the category:
+#   (CoreRoutine`-[NSArray(RTExtensions) flatten])
+# in:
+#   (/System/Library/PrivateFrameworks/CoreRoutine.framework/Versions/A/CoreRoutine)
+#
+# This function has a collision with Array#flatten.
+#
+# This file is generated to patch Array with flatten after NSArray framwork classes are loaded.
+#
+# You may add this file to your .gitignore since RubyMotion will generate this file on your behalf
+class Array
+  def flatten(*args)
+    __flatten__(*args)
+  end
+end
+S
+      end
+
       project_files = Glob.lexicographically("**/*.rb").map{ |x| File.expand_path(x) }
+
       is_default_archs = (archs == config.default_archs[platform])
       rubyc_bs_flags = bs_files.map { |x| "--uses-bs \"" + x + "\" " }.join(' ')
 
