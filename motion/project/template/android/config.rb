@@ -186,7 +186,7 @@ module Motion; module Project
         App.fail "app.sdk_path should point to a valid Android SDK directory. Run 'motion android-setup-legacy' to install the latest SDK version."
       end
 
-      if !ndk_path or !File.exist?("#{ndk_path}/platforms")
+      if !ndk_path or !File.exist?("#{ndk_path}/toolchains")
         App.fail "app.ndk_path should point to a valid Android NDK directory. Run 'motion android-setup' to install the latest NDK version."
       end
 
@@ -194,9 +194,8 @@ module Motion; module Project
         App.fail "The Android SDK installed on your system does not support " + (api_version == nil ? "any API level. Run 'motion android-setup' to install the latest API level." : "API level #{api_version}") + ". Run 'motion android-setup --api_version=#{api_version}' to install it."
       end
 
-      if !File.exist?("#{ndk_path}/platforms/android-#{api_version_ndk}")
-        App.fail "The Android NDK installed on your system does not support API level #{api_version}. Run 'motion android-setup' to install a more recent NDK version."
-      end
+      # NDK 28+ uses a unified toolchain instead of per-API-level platforms
+      # Validation is done by checking for the toolchain directory above
 
       super
     end
@@ -281,6 +280,10 @@ module Motion; module Project
       end
     end
 
+    def ndk_sysroot
+      @ndk_sysroot ||= File.join(ndk_path, "toolchains/llvm/prebuilt/darwin-x86_64/sysroot")
+    end
+
     def cc
       File.join(ndk_toolchain_bin_dir, 'clang')
     end
@@ -331,7 +334,8 @@ module Motion; module Project
     end
 
     def api_version_ndk
-      '30'
+      # For NDK 28+, use the actual API version
+      api_version
     end
 
     def cflags(arch)
@@ -339,7 +343,7 @@ module Motion; module Project
         when 'armv5te'
           "-mtune=xscale"
       end
-      "#{asflags(arch)} #{archflags} -MMD -MP -fpic -ffunction-sections -funwind-tables -fexceptions -fstack-protector -fno-rtti -fno-strict-aliasing -O0 -g3 -fno-omit-frame-pointer -DANDROID -isysroot \"#{ndk_path}/sysroot\" -Wformat -Werror=format-security -Wno-unknown-attributes"
+      "#{asflags(arch)} #{archflags} -MMD -MP -fpic -ffunction-sections -funwind-tables -fexceptions -fstack-protector -fno-rtti -fno-strict-aliasing -O0 -g3 -fno-omit-frame-pointer -DANDROID -isysroot \"#{ndk_sysroot}\" -Wformat -Werror=format-security -Wno-unknown-attributes"
     end
 
     def cxxflags(arch)
@@ -361,7 +365,7 @@ module Motion; module Project
     end
 
     def ldflags(arch)
-      "#{toolchain_flags(arch)} -Wl,-soname,#{payload_library_filename} -shared -isysroot \"#{ndk_path}/sysroot\" -no-canonical-prefixes -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -O0 -g3"
+      "#{toolchain_flags(arch)} -Wl,-soname,#{payload_library_filename} -shared -isysroot \"#{ndk_sysroot}\" -no-canonical-prefixes -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -O0 -g3"
     end
 
     def versioned_datadir

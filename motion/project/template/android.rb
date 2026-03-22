@@ -205,7 +205,8 @@ task :build do
     mkdir_p classes_dir
 
     r_java.each do |java_path|
-      sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{classes_dir} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+      # Updated for Java 17 compatibility
+      sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{classes_dir}:\"#{android_jar}\" -sourcepath \"#{java_dir}\" -encoding UTF-8 -g \"#{java_path}\""
     end
 
     r_classes = Dir.glob(classes_dir + '/**/R\$*[a-z]*.class').sort.map { |c| "'#{c}'" }
@@ -371,13 +372,21 @@ EOS
     sh "cp -R ./assets/ #{File.join app_build_dir, "obj", "assets/"}"
     libpayload_subpaths << "#{libs_abi_subpath}/libc++_shared.so"
 
-    # Copy the gdb server.
-    gdbserver_subpath = "#{libs_abi_subpath}/gdbserver"
+    # Copy the lldb server (NDK 28+ uses LLVM).
+    # Map architecture to lldb-server directory
+    lldb_arch = case App.config.common_arch(arch)
+      when 'arm64' then 'aarch64'
+      when 'arm' then 'arm'
+      when 'x86' then 'i386'
+      else App.config.common_arch(arch)
+    end
+    lldb_server_src = "#{App.config.ndk_path}/toolchains/llvm/prebuilt/darwin-x86_64/lib/clang/19/lib/linux/#{lldb_arch}/lldb-server"
+    gdbserver_subpath = "#{libs_abi_subpath}/lldb-server"
     gdbserver_subpaths << gdbserver_subpath
     gdbserver_path = "#{app_build_dir}/#{gdbserver_subpath}"
     if !File.exist?(gdbserver_path)
       App.info 'Create', gdbserver_path
-      sh "/usr/bin/install -p #{App.config.ndk_path}/prebuilt/android-#{App.config.common_arch(arch)}/gdbserver/gdbserver #{File.dirname(gdbserver_path)}"
+      sh "/usr/bin/install -p #{lldb_server_src} #{File.dirname(gdbserver_path)}"
     end
 
     # Install native shared libraries.
@@ -487,6 +496,7 @@ EOS
   java_classes.each do |name, klass|
     klass_super = klass[:super]
     klass_super = 'java.lang.Object' if klass_super == '$blank$'
+
     if !klass_super.include?('.') and !java_classes.key?(klass_super)
       # Super class does not exist, skipping...
       next
@@ -553,18 +563,18 @@ EOS
       next
     end
 
-    if !File.exist?(java_class_path) or File.mtime(java_path) > File.mtime(java_class_path)
-      java_paths << java_path
-    end
+    # Always compile Java files (mtime check removed for reliability)
+    java_paths << java_path
   end
-  compile_java_file = Proc.new do |classes_dir, java_path|
-    App.info 'Create', java_path if Rake.application.options.trace
-    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path} -sourcepath \"#{java_dir}\" -target 1.5 -bootclasspath \"#{android_jar}\" -encoding UTF-8 -g -source 1.5 \"#{java_path}\""
+  # Compile all Java files together in a single javac invocation for better performance and dependency resolution
+  if java_paths.size > 0
+    App.info 'Compile', "#{java_paths.size} Java file(s)"
+    # Updated for Java 17 compatibility - removed -target/-source and -bootclasspath
+    # Include android.jar in classpath
+    all_java_files = java_paths.map { |p| "\"#{p}\"" }.join(' ')
+    sh "/usr/bin/javac -d \"#{classes_dir}\" -classpath #{class_path}:\"#{android_jar}\" -sourcepath \"#{java_dir}\" -encoding UTF-8 -g #{all_java_files}"
     classes_changed = true
   end
-  parallel = Motion::Project::ParallelBuilder.new(classes_dir, compile_java_file)
-  parallel.files = java_paths
-  parallel.run
 
   # Generate the dex file.
   if App.config.multidex
@@ -596,8 +606,16 @@ EOS
         or classes_changed \
         or vendored_jars.any? { |x| File.mtime(x) > File.mtime(dex_classes) }
       App.info 'Create', dex_classes
-      dx_binary_location = App.config.sdk_path + "/build-tools/30.0.0" + "/dx"
-      sh "\"#{dx_binary_location}\" -JXmx2048m --dex --no-strict --incremental --output \"#{dex_classes}\" \"#{classes_dir}\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+      # Use d8 for build tools 35+ instead of deprecated dx
+      d8_binary_location = File.join(App.config.build_tools_dir, "d8")
+      dex_output_dir = File.join(app_build_dir, 'dex_output')
+      mkdir_p dex_output_dir
+      # d8 needs JAR files or class files. Create a JAR from the classes directory to handle inner classes properly
+      classes_jar = File.join(app_build_dir, 'classes.jar')
+      sh "/usr/bin/jar cf \"#{classes_jar}\" -C \"#{classes_dir}\" ."
+      sh "\"#{d8_binary_location}\" --min-api #{App.config.api_version} --output \"#{dex_output_dir}\" \"#{classes_jar}\" #{vendored_jars.compact.map{ |x| "'#{x}'" }.join(' ')}"
+      # d8 creates classes.dex in the output directory, move it to the expected location
+      sh "mv \"#{File.join(dex_output_dir, 'classes.dex')}\" \"#{dex_classes}\""
     end
   end
 
@@ -861,7 +879,7 @@ namespace 'emulator' do
   end
 
   task :build do
-    App.config.archs = ['x86', 'arm64-v8a'] # Build x86 and arm binary for emulators (arm added for M1/M2 macs)
+    App.config.archs = ['arm64-v8a']
     Rake::Task["build"].invoke
   end
 end
