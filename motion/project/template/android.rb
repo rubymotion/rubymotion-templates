@@ -660,7 +660,7 @@ EOS
       end
 
       App.info 'Align', archive
-      sh "\"#{App.config.zipalign_path}\" -f 4 \"#{archive}\" \"#{archive}-aligned\""
+      sh "\"#{App.config.zipalign_path}\" -f 16 \"#{archive}\" \"#{archive}-aligned\""
       sh "/bin/mv \"#{archive}-aligned\" \"#{archive}\""
 
       App.info 'Sign', archive
